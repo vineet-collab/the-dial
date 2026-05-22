@@ -1042,89 +1042,98 @@ setInterval(()=>{
 // ================================================================
 // INIT
 // ================================================================
-// ── LIVE DATA FETCH from Netlify function ──────────────────────
-// Runs on load, merges fresh O2 + sports data with static fallback
-// The Netlify function hits football-data.org and The O2 calendar daily
+// ── LIVE SPORTS FETCH — direct from football-data.org ──────────
+// Calls the API directly from the browser (no server needed)
+// FOOTBALL_API_KEY is embedded here since it's a free public API
+// (rate limit: 10 req/min — we only make ~4 calls total)
 let LIVE_DATA_LOADED = false;
+const FBALL_KEY = '9cbf020d09e94c91a8c94a0f44d55f9a';
 
-async function fetchLiveData() {
-  const dot  = document.getElementById('refresh-dot');
-  const lbl  = document.getElementById('refresh-label');
-  try {
-    if(lbl) lbl.textContent = 'Fetching live data...';
-    const res  = await fetch('/.netlify/functions/data');
-    if(!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-    let newShows = 0, newSports = 0;
+const UK_TEAMS = new Set([
+  'Arsenal FC','Chelsea FC','Liverpool FC','Manchester City FC',
+  'Manchester United FC','Tottenham Hotspur FC','Newcastle United FC',
+  'Aston Villa FC','West Ham United FC',
+  'Arsenal','Chelsea','Liverpool','Manchester City',
+  'Manchester United','Tottenham','Newcastle','Aston Villa','West Ham',
+  'England','Scotland','Wales',
+]);
 
-    // ── Merge O2 shows ─────────────────────────────────────────
-    if(data.shows && data.shows.length > 0){
-      // Build lookup: date+normalised name
-      const existing = new Set(SHOWS.map(s => s.date + '|' + s.name.toLowerCase().trim()));
-      data.shows.forEach(s => {
-        const key = s.date + '|' + s.name.toLowerCase().trim();
-        if(!existing.has(key)){
-          existing.add(key);
-          newShows++;
-          SHOWS.push({
-            date    : s.date,
-            name    : s.name,
-            venue   : s.venue || 'arena',
-            start   : s.start || '20:45',
-            doors   : '18:30',
-            genre   : 'Live Event',
-            cap     : 20000,
-            busy    : 65,
-            ig      : null,
-            igHandle: null,
-            tickets : 'Check theo2.co.uk',
-            night   : null,
-            crowd   : 'Crowd profile coming soon — check back as the event approaches.',
-            pre     : 'moderate',
-            post    : 'moderate',
-            drinks  : [{n:'Lager',p:35,c:'#4fb87a'},{n:'Cocktails',p:28,c:'#9b72cf'},{n:'Wine',p:22,c:'#c8a96e'},{n:'Soft Drinks',p:15,c:'#5b9bd5'}],
-            timing  : [{t:'18:30–20:30',l:'Pre-show window',d:'Doors 18:30'},{t:'~20:45',l:'Show',d:'Headliner on stage'},{t:'~22:30',l:'Show ends',d:'Post-show'}],
-            notes   : 'Newly announced — full crowd profile will be added shortly.',
-          });
-        }
-      });
-    }
+function isBST(ds){
+  const d=new Date(ds),y=d.getFullYear();
+  const lsm=new Date(y,2,31-(new Date(y,2,31).getDay()));
+  const lso=new Date(y,9,31-(new Date(y,9,31).getDay()));
+  return d>=lsm&&d<lso;
+}
+function utcToUK(s){
+  const d=new Date(s),off=isBST(s)?1:0;
+  d.setHours(d.getHours()+off);
+  return d.toISOString().slice(0,16);
+}
+const _DY=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const _MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
-    // ── Merge sports fixtures ──────────────────────────────────
-    if(data.sports && data.sports.length > 0){
-      const existingSp = new Set(SPORTS.map(s => s.date + '|' + s.name.toLowerCase().trim()));
-      data.sports.forEach(s => {
-        const key = s.date + '|' + s.name.toLowerCase().trim();
-        if(!existingSp.has(key)){
-          existingSp.add(key);
-          newSports++;
-          SPORTS.push(s);
-        }
-      });
-    }
+function niceKO(dateStr,timeStr,broadcaster){
+  const d=new Date(dateStr+'T12:00:00');
+  return `${_DY[d.getDay()]} ${d.getDate()} ${_MO[d.getMonth()]} · ${timeStr} BST · ${broadcaster}`;
+}
 
-    LIVE_DATA_LOADED = true;
+async function fetchLiveData(){
+  const dot=document.getElementById('refresh-dot');
+  const lbl=document.getElementById('refresh-label');
+  if(lbl) lbl.textContent='Fetching live sports...';
 
-    // ── Update status badge ────────────────────────────────────
-    if(dot)  dot.style.background = 'var(--green)';
-    if(lbl){
-      const updated = data.lastUpdated ? new Date(data.lastUpdated) : new Date();
-      const time    = updated.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
-      const extras  = [];
-      if(newShows  > 0) extras.push(`+${newShows} show${newShows>1?'s':''}`);
-      if(newSports > 0) extras.push(`+${newSports} fixture${newSports>1?'s':''}`);
-      lbl.textContent = `Live data · ${time}${extras.length?' · '+extras.join(', '):''}`;
-    }
+  const today=fmt(new Date());
+  const end=fmt(new Date(Date.now()+60*24*60*60*1000));
+  const comps=[
+    {code:'PL', icon:'⚽',type:'pl', broadcaster:'Sky Sports'},
+    {code:'CL', icon:'🏆',type:'ucl',broadcaster:'TNT Sports'},
+    {code:'EL', icon:'🟠',type:'el', broadcaster:'TNT Sports'},
+    {code:'WC', icon:'🌍',type:'wc', broadcaster:'ITV/BBC'},
+  ];
 
-    // Re-render with fresh data
-    renderSidebar();
-    renderMain();
+  let newSports=0;
+  const existingSp=new Set(SPORTS.map(s=>s.date+'|'+s.name.toLowerCase().trim()));
 
-  } catch(e) {
-    console.log('Live data unavailable, using static fallback:', e.message);
-    if(dot) dot.style.background = 'var(--amber)';
-    if(lbl) lbl.textContent = 'Using cached data';
+  for(const comp of comps){
+    try{
+      const url=`https://api.football-data.org/v4/competitions/${comp.code}/matches?dateFrom=${today}&dateTo=${end}&status=SCHEDULED,TIMED`;
+      const r=await fetch(url,{'headers':{'X-Auth-Token':FBALL_KEY}});
+      if(!r.ok) continue;
+      const data=await r.json();
+      for(const m of data.matches||[]){
+        const uk=utcToUK(m.utcDate);
+        const dateStr=uk.slice(0,10);
+        const timeStr=uk.slice(11,16);
+        const hour=parseInt(timeStr);
+        if(hour<17&&hour>2) continue;
+        const home=m.homeTeam?.name||'TBC';
+        const away=m.awayTeam?.name||'TBC';
+        const name=`${comp.icon} ${home} vs ${away}`;
+        const key=dateStr+'|'+name.toLowerCase().trim();
+        if(existingSp.has(key)) continue;
+        existingSp.add(key);
+        newSports++;
+        const hasUK=UK_TEAMS.has(home)||UK_TEAMS.has(away);
+        const hasEng=home.includes('England')||away.includes('England');
+        const isFinal=(m.stage||'').toUpperCase().includes('FINAL');
+        let boost=4,solo=22,impact='LOW',ic='moderate';
+        if(hasEng){boost=18;solo=62;impact='MODERATE-HIGH';ic='high';}
+        else if(hasUK&&comp.code==='PL'){boost=8;solo=40;impact='MODERATE';ic='moderate';}
+        else if(hasUK||isFinal){boost=10;solo=44;impact='MODERATE';ic='moderate';}
+        SPORTS.push({type:comp.type,date:dateStr,name,ko:niceKO(dateStr,timeStr,comp.broadcaster),boost,solo,impact,impact_class:ic});
+      }
+      await new Promise(r=>setTimeout(r,400));
+    }catch(e){console.log(comp.code,'error:',e.message);}
   }
+
+  LIVE_DATA_LOADED=true;
+  if(dot) dot.style.background='var(--green)';
+  if(lbl){
+    const time=new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+    lbl.textContent=`Live sports · ${time}${newSports>0?' · +'+newSports+' fixtures':''}`;
+  }
+  renderSidebar();
+  renderMain();
 }
 
 (function(){
