@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Dial — Manager Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0d0d0d;--surface:#141414;--surface2:#1c1c1c;--border:#272727;--accent:#c8a96e;--accent2:#e2c97e;--text:#f0ece4;--muted:#6e6a65;--green:#4fb87a;--amber:#f0a832;--red:#e0544e;--blue:#5b9bd5;--purple:#9b72cf;--sport:#e05a8a;--boxing:#f07832;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;}
+header{display:flex;align-items:center;justify-content:space-between;padding:13px 22px;border-bottom:1px solid var(--border);background:var(--bg);position:sticky;top:0;z-index:200;}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:1.65rem;letter-spacing:.05em;color:var(--accent);}
+.logo span{color:var(--muted);font-size:.85rem;font-family:'DM Sans',sans-serif;font-weight:300;margin-left:8px;vertical-align:middle;}
+.hdr-right{display:flex;align-items:center;gap:8px;}
+.btn-h{background:var(--surface);border:1px solid var(--border);color:var(--text);padding:5px 11px;border-radius:6px;cursor:pointer;font-size:.78rem;transition:border-color .15s;}
+.btn-h:hover{border-color:var(--accent);color:var(--accent);}
+.clock{font-family:'DM Mono',monospace;font-size:.88rem;color:var(--accent);background:var(--surface);border:1px solid var(--border);padding:5px 11px;border-radius:6px;}
+.shell{display:grid;grid-template-columns:250px 1fr;min-height:calc(100vh - 55px);}
+aside{border-right:1px solid var(--border);background:var(--surface);overflow-y:auto;max-height:calc(100vh - 55px);position:sticky;top:55px;}
+.week-nav{display:flex;align-items:center;justify-content:space-between;padding:11px 13px;border-bottom:1px solid var(--border);}
+.week-nav button{background:var(--surface2);border:1px solid var(--border);color:var(--text);width:27px;height:27px;border-radius:5px;cursor:pointer;font-size:.95rem;}
+.week-nav button:hover{border-color:var(--accent);color:var(--accent);}
+.wk-label{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;}
+.day-tab{padding:9px 12px;cursor:pointer;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:8px;transition:background .12s;}
+.day-tab:hover{background:var(--surface2);}
+.day-tab.active{background:rgba(200,169,110,.09);border-left:3px solid var(--accent);}
+.date-num{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;color:var(--muted);min-width:28px;line-height:1.1;}
+.day-tab.active .date-num{color:var(--accent);}
+.day-info{flex:1;min-width:0;}
+.day-name{font-size:.69rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);}
+.ev-pill{font-size:.68rem;padding:1px 5px;border-radius:3px;display:inline-block;margin:2px 2px 0 0;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ev-pill.arena{background:rgba(200,169,110,.12);color:var(--accent);border:1px solid rgba(200,169,110,.28);}
+.ev-pill.indigo{background:rgba(91,155,213,.12);color:var(--blue);border:1px solid rgba(91,155,213,.28);}
+.ev-pill.sport{background:rgba(224,90,138,.12);color:var(--sport);border:1px solid rgba(224,90,138,.28);}
+.ev-pill.boxing{background:rgba(240,120,50,.12);color:var(--boxing);border:1px solid rgba(240,120,50,.28);}
+.ev-pill.pl{background:rgba(56,0,180,.18);color:#a78bfa;border:1px solid rgba(130,80,255,.3);}
+.ev-pill.custom{background:rgba(79,184,122,.12);color:var(--green);border:1px solid rgba(79,184,122,.28);}
+.busy-bar{width:100%;height:3px;border-radius:2px;background:var(--surface2);overflow:hidden;margin-top:4px;}
+.busy-fill{height:100%;border-radius:2px;}
+main{padding:20px;overflow-y:auto;}
+.view-tabs{display:flex;gap:6px;margin-bottom:18px;}
+.view-tab{padding:5px 13px;border-radius:6px;border:1px solid var(--border);cursor:pointer;font-size:.78rem;color:var(--muted);transition:all .14s;}
+.view-tab:hover,.view-tab.active{border-color:var(--accent);color:var(--accent);}
+.view-tab.active{background:rgba(200,169,110,.1);}
+.event-header{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:18px;}
+.etb h1{font-family:'Bebas Neue',sans-serif;font-size:2.4rem;letter-spacing:.04em;line-height:1;}
+.vbadge{display:inline-flex;align-items:center;gap:4px;margin-top:4px;font-size:.7rem;text-transform:uppercase;letter-spacing:.1em;padding:3px 8px;border-radius:4px;}
+.vbadge.arena{background:rgba(200,169,110,.12);color:var(--accent);border:1px solid rgba(200,169,110,.28);}
+.vbadge.indigo{background:rgba(91,155,213,.12);color:var(--blue);border:1px solid rgba(91,155,213,.28);}
+.vbadge.custom{background:rgba(79,184,122,.12);color:var(--green);border:1px solid rgba(79,184,122,.28);}
+.time-info{font-size:.78rem;color:var(--muted);margin-top:4px;}
+.busy-meter{text-align:right;flex-shrink:0;}
+.bm-label{font-size:.63rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:2px;}
+.bm-num{font-family:'Bebas Neue',sans-serif;font-size:2.7rem;line-height:1;}
+.bm-sub{font-size:.7rem;color:var(--muted);}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;margin-bottom:16px;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:13px;}
+.card-lbl{font-size:.63rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:4px;}
+.card-val{font-size:.96rem;font-weight:500;line-height:1.3;}
+.tag{display:inline-block;border-radius:4px;font-size:.73rem;padding:2px 7px;margin:2px 2px 0 0;}
+.tag-a{background:rgba(240,168,50,.1);color:var(--amber);border:1px solid rgba(240,168,50,.28);}
+.tag-r{background:rgba(224,84,78,.1);color:var(--red);border:1px solid rgba(224,84,78,.28);}
+.tag-g{background:rgba(79,184,122,.1);color:var(--green);border:1px solid rgba(79,184,122,.28);}
+.tag-b{background:rgba(91,155,213,.1);color:var(--blue);border:1px solid rgba(91,155,213,.28);}
+.section{background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:17px;margin-bottom:13px;}
+.section h2{font-size:.66rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin-bottom:11px;display:flex;justify-content:space-between;align-items:center;}
+.section h2 a{font-size:.68rem;color:var(--accent);cursor:pointer;letter-spacing:0;text-transform:none;font-weight:400;}
+.crowd-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px;}
+.ccard{background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:12px;}
+.ccard h3{font-size:.65rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:7px;}
+.ccard p{font-size:.84rem;line-height:1.55;}
+.drink-bars{display:flex;flex-direction:column;gap:8px;}
+.drink-row{display:flex;align-items:center;gap:8px;}
+.drink-lbl{width:126px;font-size:.79rem;flex-shrink:0;}
+.drink-track{flex:1;height:7px;background:var(--bg);border-radius:4px;overflow:hidden;border:1px solid var(--border);}
+.drink-fill{height:100%;border-radius:4px;}
+.drink-pct{font-family:'DM Mono',monospace;font-size:.7rem;color:var(--muted);width:28px;text-align:right;}
+.timing-row{display:flex;}
+.tblock{flex:1;text-align:center;padding:8px 3px;position:relative;}
+.tblock:not(:last-child)::after{content:'';position:absolute;right:0;top:15%;height:70%;width:1px;background:var(--border);}
+.tb-time{font-family:'DM Mono',monospace;font-size:.82rem;color:var(--accent);}
+.tb-lbl{font-size:.66rem;color:var(--muted);margin-top:2px;}
+.tb-desc{font-size:.74rem;margin-top:3px;}
+
+/* SPORT BANNERS */
+.sport-banner{border-radius:9px;padding:15px;margin-bottom:13px;}
+.sport-banner.football{background:rgba(224,90,138,.06);border:1px solid rgba(224,90,138,.22);}
+.sport-banner.pl-banner{background:rgba(100,60,220,.06);border:1px solid rgba(130,80,255,.22);}
+.sport-banner.boxing-banner{background:rgba(240,120,50,.06);border:1px solid rgba(240,120,50,.22);}
+.sport-banner h2{font-size:.66rem;text-transform:uppercase;letter-spacing:.12em;margin-bottom:11px;}
+.sport-banner.football h2{color:var(--sport);}
+.sport-banner.pl-banner h2{color:#a78bfa;}
+.sport-banner.boxing-banner h2{color:var(--boxing);}
+.sport-ev{display:flex;align-items:flex-start;gap:11px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.05);}
+.sport-ev:last-child{border-bottom:none;padding-bottom:0;}
+.sport-badge{border-radius:5px;padding:4px 8px;font-size:.7rem;font-weight:600;white-space:nowrap;}
+.sport-badge.football{background:rgba(224,90,138,.14);color:var(--sport);}
+.sport-badge.pl{background:rgba(130,80,255,.18);color:#a78bfa;}
+.sport-badge.boxing{background:rgba(240,120,50,.18);color:var(--boxing);}
+.sdtl h3{font-size:.88rem;font-weight:600;margin-bottom:2px;}
+.sdtl .sm{font-size:.74rem;color:var(--muted);margin-bottom:3px;}
+.sdtl p{font-size:.8rem;line-height:1.5;}
+.impact-line{margin-top:4px;font-size:.8rem;font-weight:600;}
+.impact-line.critical{color:var(--red);}
+.impact-line.very-high{color:var(--boxing);}
+.impact-line.high{color:var(--amber);}
+.impact-line.moderate{color:var(--green);}
+
+/* CUSTOM EVENTS */
+.custom-banner{background:rgba(79,184,122,.05);border:1px solid rgba(79,184,122,.2);border-radius:9px;padding:15px;margin-bottom:13px;}
+.custom-banner h2{font-size:.66rem;text-transform:uppercase;letter-spacing:.12em;color:var(--green);margin-bottom:11px;}
+.cb-ev{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid rgba(79,184,122,.1);}
+.cb-ev:last-child{border-bottom:none;padding-bottom:0;}
+.cb-badge{border-radius:4px;padding:3px 8px;font-size:.69rem;font-weight:600;white-space:nowrap;}
+.cb-badge.vip{background:rgba(200,169,110,.12);color:var(--accent);}
+.cb-badge.private{background:rgba(155,114,207,.12);color:var(--purple);}
+.cb-badge.corporate{background:rgba(91,155,213,.12);color:var(--blue);}
+.cb-badge.birthday{background:rgba(224,90,138,.12);color:var(--sport);}
+.cb-badge.other{background:rgba(110,106,101,.12);color:var(--muted);}
+.cb-dtl{flex:1;}
+.cb-name{font-size:.86rem;font-weight:500;}
+.cb-meta{font-size:.73rem;color:var(--muted);margin-top:1px;}
+
+/* FORMS */
+input,textarea,select{background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.84rem;padding:8px 10px;width:100%;}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--accent);}
+select option{background:var(--surface2);}
+.fg{display:flex;flex-direction:column;gap:4px;}
+.fl{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);}
+.fgrid2{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:9px;}
+.btn-p{background:var(--accent);color:#0d0d0d;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:600;}
+.btn-p:hover{background:var(--accent2);}
+.btn-s{background:var(--surface2);color:var(--text);border:1px solid var(--border);padding:8px 16px;border-radius:6px;cursor:pointer;font-size:.82rem;}
+.btn-s:hover{border-color:var(--accent);}
+.factions{display:flex;align-items:center;gap:9px;margin-top:11px;}
+.saved{font-size:.76rem;color:var(--green);display:none;}
+
+/* REVENUE */
+.rh-row{display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid var(--border);font-size:.8rem;}
+.rh-row:last-child{border-bottom:none;}
+.rh-date{color:var(--muted);min-width:90px;font-family:'DM Mono',monospace;font-size:.73rem;}
+.rh-ev{flex:1;}
+.rh-total{font-family:'DM Mono',monospace;color:var(--accent);font-size:.85rem;}
+.rh-break{font-size:.7rem;color:var(--muted);}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:500;display:none;align-items:center;justify-content:center;padding:16px;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px;width:480px;max-width:100%;max-height:88vh;overflow-y:auto;}
+.modal h3{font-family:'Bebas Neue',sans-serif;font-size:1.55rem;letter-spacing:.04em;margin-bottom:14px;color:var(--accent);}
+.mclose{float:right;background:none;border:none;color:var(--muted);font-size:1.2rem;cursor:pointer;line-height:1;margin-top:-2px;}
+.mclose:hover{color:var(--text);}
+
+
+/* WEATHER — handled by .card class */
+
+/* UPCOMING */
+.upcoming-section{margin-top:18px;}
+.upc-row{display:flex;gap:9px;overflow-x:auto;padding-bottom:6px;}
+.upc-card{background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:11px;min-width:150px;flex-shrink:0;cursor:pointer;transition:border-color .13s;}
+.upc-card:hover{border-color:var(--accent);}
+.upc-date{font-size:.67rem;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;}
+.upc-name{font-weight:600;font-size:.83rem;margin:3px 0;line-height:1.2;}
+.upc-busy{font-size:.71rem;}
+
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:240px;color:var(--muted);gap:9px;}
+.empty-state .esi{font-size:2rem;}
+
+@media(max-width:760px){.shell{grid-template-columns:1fr;}aside{position:relative;top:0;max-height:none;}.grid3{grid-template-columns:1fr 1fr;}.crowd-grid,.fgrid2{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">The Dial <span>Manager Dashboard</span></div>
+  <div class="hdr-right">
+    <span id="refresh-badge" style="font-size:.67rem;color:var(--muted);border:1px solid var(--border);padding:4px 9px;border-radius:5px;display:flex;align-items:center;gap:5px;">
+      <span id="refresh-dot" style="width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block;flex-shrink:0;"></span>
+      <span id="refresh-label">Auto-refresh on</span>
+    </span>
+    <button class="btn-h" onclick="openAddEvent()">+ Add Event</button>
+    <button class="btn-h" onclick="openRevModal()">£ Log Revenue</button>
+    <div class="clock" id="clock">--:--:--</div>
+  </div>
+</header>
+
+<div class="shell">
+  <aside id="sidebar">
+    <div class="week-nav">
+      <button onclick="changeWeek(-1)">‹</button>
+      <span class="wk-label" id="wk-label"></span>
+      <button onclick="changeWeek(1)">›</button>
+    </div>
+    <div id="day-tabs"></div>
+  </aside>
+  <main id="main"></main>
+</div>
+
+<!-- ADD EVENT MODAL -->
+<div class="modal-overlay" id="m-add">
+  <div class="modal">
+    <button class="mclose" onclick="closeModal('m-add')">✕</button>
+    <h3>Add Custom Event</h3>
+    <div class="fgrid2">
+      <div class="fg"><label class="fl">Event Name</label><input id="ae-name" placeholder="e.g. Private Hire – Smith Co."></div>
+      <div class="fg"><label class="fl">Date</label><input id="ae-date" type="date"></div>
+      <div class="fg"><label class="fl">Start Time</label><input id="ae-time" type="time" value="19:00"></div>
+      <div class="fg"><label class="fl">Type</label><select id="ae-type"><option value="vip">VIP / Table Booking</option><option value="private">Private Hire</option><option value="corporate">Corporate</option><option value="birthday">Birthday / Celebration</option><option value="other">Other</option></select></div>
+      <div class="fg"><label class="fl">Expected Guests</label><input id="ae-covers" type="number" placeholder="e.g. 80"></div>
+      <div class="fg"><label class="fl">Est. Spend (£)</label><input id="ae-spend" type="number" placeholder="e.g. 3500"></div>
+    </div>
+    <div class="fg" style="margin-bottom:10px"><label class="fl">Team Notes</label><textarea id="ae-notes" rows="3" placeholder="Dietary needs, contact, special requests..."></textarea></div>
+    <div class="factions"><button class="btn-p" onclick="saveCustomEvent()">Save Event</button><button class="btn-s" onclick="closeModal('m-add')">Cancel</button><span class="saved" id="ae-saved">✓ Saved</span></div>
+  </div>
+</div>
+
+<!-- REVENUE MODAL -->
+<div class="modal-overlay" id="m-rev">
+  <div class="modal">
+    <button class="mclose" onclick="closeModal('m-rev')">✕</button>
+    <h3>Log Revenue</h3>
+    <div class="fg" style="margin-bottom:9px"><label class="fl">Date</label><input id="rv-date" type="date"></div>
+    <div class="fgrid2">
+      <div class="fg"><label class="fl">Total Revenue (£)</label><input id="rv-total" type="number" step="0.01" placeholder="0.00"></div>
+      <div class="fg"><label class="fl">Food Revenue (£)</label><input id="rv-food" type="number" step="0.01" placeholder="0.00"></div>
+      <div class="fg"><label class="fl">Drinks Revenue (£)</label><input id="rv-drinks" type="number" step="0.01" placeholder="0.00"></div>
+      <div class="fg"><label class="fl">Covers / Guests</label><input id="rv-covers" type="number" placeholder="0"></div>
+    </div>
+    <div class="fgrid2" style="margin-bottom:9px">
+      <div class="fg"><label class="fl">Weather / Conditions</label>
+        <select id="rv-weather">
+          <option value="">— Select —</option>
+          <option>☀️ Clear / Sunny</option><option>🌤️ Partly Cloudy</option><option>☁️ Overcast</option>
+          <option>🌧️ Rain</option><option>⛈️ Heavy Rain / Storm</option><option>❄️ Cold & Dry</option>
+          <option>🌫️ Foggy</option><option>🌬️ Windy</option>
+        </select>
+      </div>
+      <div class="fg"><label class="fl">Weather Impact (1–10)</label><input id="rv-weather-score" type="number" min="1" max="10" placeholder="1=hurt, 10=helped"></div>
+    </div>
+    <div class="fg" style="margin-bottom:9px"><label class="fl">Notes</label><textarea id="rv-notes" rows="2" placeholder="Night summary..."></textarea></div>
+    <div class="factions"><button class="btn-p" onclick="saveRevModal()">Save</button><button class="btn-s" onclick="closeModal('m-rev')">Cancel</button><span class="saved" id="rv-saved">✓ Saved</span></div>
+  </div>
+</div>
+
+<script>
+// ================================================================
+// O2 SHOWS
+// ================================================================
+const SHOWS=[
+{date:"2026-04-30",name:"Olivia Dean",venue:"arena",start:"20:45",doors:"18:30",genre:"indie-pop/soul",cap:20000,busy:70,ig:"6M",igHandle:"@oliviadeano",tickets:"SOLD OUT — resale only",night:"Night 2 of 6",crowd:"Young women-led, 18–35. Devoted music fans since her early days — sentimental, expressive, Instagram-active. Groups of friends and couples.",pre:"high",post:"moderate",drinks:[{n:"Lager/Craft",p:30,c:"#4fb87a"},{n:"Cocktails",p:25,c:"#9b72cf"},{n:"Wine",p:25,c:"#c8a96e"},{n:"Soft Drinks",p:20,c:"#5b9bd5"}],timing:[{t:"17:00–20:30",l:"Pre-show window",d:"Doors 18:30 · Support 19:30 · Steady build as fans arrive"},{t:"~20:45",l:"Olivia Dean on stage",d:"Headliner hits — bar quietens"},{t:"~22:15",l:"Show ends",d:"Emotional post-show rush — fans pour out"}],notes:"Night 2 of 6. Pre-show is biggest drinking window. Push wine and cocktails. Some fans will want to extend the night."},
+{date:"2026-05-01",name:"Olivia Dean",venue:"arena",start:"20:45",doors:"18:30",genre:"indie-pop/soul",cap:20000,busy:75,ig:"6M",igHandle:"@oliviadeano",tickets:"SOLD OUT — resale only",night:"Night 3 of 6",crowd:"Same young female demographic. Friday energy — groups who've made a night of it.",pre:"high",post:"high",drinks:[{n:"Lager/Craft",p:28,c:"#4fb87a"},{n:"Cocktails",p:27,c:"#9b72cf"},{n:"Wine",p:25,c:"#c8a96e"},{n:"Soft Drinks",p:20,c:"#5b9bd5"}],timing:[{t:"17:00–20:30",l:"Pre-show window",d:"Doors 18:30 · Support 19:30 · Strong Friday build"},{t:"~20:45",l:"Olivia Dean on stage",d:"Headliner hits"},{t:"~22:15",l:"Show ends",d:"Good post-show tail on a Friday"}],notes:"Night 3 of 6. Friday energy. Good post-show opportunity. Keep the atmosphere going."},
+{date:"2026-05-02",name:"Olivia Dean",venue:"arena",start:"20:45",doors:"18:30",genre:"indie-pop/soul",cap:20000,busy:78,ig:"6M",igHandle:"@oliviadeano",tickets:"SOLD OUT — resale only",night:"Night 4 of 6",crowd:"Saturday crowd — many travelled. Groups who've planned the whole day. Pre-show from midday.",pre:"very high",post:"high",drinks:[{n:"Cocktails",p:30,c:"#9b72cf"},{n:"Lager/Craft",p:25,c:"#4fb87a"},{n:"Wine",p:25,c:"#c8a96e"},{n:"Soft Drinks",p:20,c:"#5b9bd5"}],timing:[{t:"13:00–18:30",l:"Afternoon & pre-show",d:"Saturday arrivals from midday · Doors 18:30 · Main surge"},{t:"~20:45",l:"Olivia Dean on stage",d:"Headliner hits"},{t:"~22:15",l:"Show ends",d:"Saturday night — many want to extend"}],notes:"Night 4 of 6. Biggest Saturday crowd of the run. Budget for high cocktail demand. Staff ready from 1pm."},
+{date:"2026-05-03",name:"Louis Tomlinson",venue:"arena",start:"19:15",doors:"17:00",genre:"pop/rock",cap:20000,busy:85,ig:"19M",igHandle:"@louist91",tickets:"SOLD OUT — resale only",night:null,crowd:"One Direction fandom — predominantly women 20–35. Deeply passionate, dressed-up, high energy. Strong pre-show drinking culture. Expect queues from mid-afternoon.",pre:"very high",post:"moderate",drinks:[{n:"Cocktails",p:35,c:"#9b72cf"},{n:"Wine/Prosecco",p:25,c:"#c8a96e"},{n:"Lager",p:25,c:"#4fb87a"},{n:"Soft Drinks",p:15,c:"#5b9bd5"}],timing:[{t:"14:00–19:00",l:"Pre-show window",d:"Fans arrive from 2pm · Doors 17:00 · Mass surge"},{t:"~19:15",l:"Louis Tomlinson on stage",d:"Headliner hits — biggest bar window beforehand"},{t:"~21:15",l:"Show ends",d:"Sunday — exits fairly quickly"}],notes:"Pre-show is your biggest window. Staff heavily front-loaded. Cocktails and prosecco lead. Sunday so post-show tail shorter."},
+{date:"2026-05-05",name:"ROSALÍA",venue:"arena",start:"20:45",doors:"18:30",genre:"experimental-pop/flamenco",cap:20000,busy:72,ig:"28M",igHandle:"@rosalia.vt",tickets:"Available — limited",night:"Night 1 of 2",crowd:"Diverse, style-conscious — art-school, fashion crowd, LGBTQ+ strong, Spanish/Latin communities, 20–40. Sophisticated. Cocktail-leaning rather than beer-heavy.",pre:"moderate",post:"moderate",drinks:[{n:"Cocktails",p:30,c:"#9b72cf"},{n:"Craft Beer",p:28,c:"#4fb87a"},{n:"Wine",p:22,c:"#c8a96e"},{n:"Soft Drinks",p:20,c:"#5b9bd5"}],timing:[{t:"17:30–20:30",l:"Pre-show window",d:"Doors 17:30 · Support 19:30 · Unhurried stylish arrivals"},{t:"~20:45",l:"ROSALÍA on stage",d:"Headliner hits"},{t:"~22:15",l:"Show ends",d:"Relaxed exit — this crowd lingers"}],notes:"Night 1 of 2. Not a high-volume drinking night but high-margin. Push craft and cocktails. This crowd responds to premium."},
+{date:"2026-05-06",name:"ROSALÍA",venue:"arena",start:"20:45",doors:"18:30",genre:"experimental-pop/flamenco",cap:20000,busy:65,ig:"28M",igHandle:"@rosalia.vt",tickets:"Available",night:"Night 2 of 2",crowd:"Wednesday show — slightly smaller, more London-local. Same style-conscious diverse demographic.",pre:"moderate",post:"low",drinks:[{n:"Cocktails",p:32,c:"#9b72cf"},{n:"Craft Beer",p:28,c:"#4fb87a"},{n:"Wine",p:22,c:"#c8a96e"},{n:"Soft Drinks",p:18,c:"#5b9bd5"}],timing:[{t:"18:30–20:30",l:"Pre-show window",d:"Doors 18:30 · Support 19:30 · Midweek pace, light build"},{t:"~20:45",l:"ROSALÍA on stage",d:"Headliner hits"},{t:"~22:15",l:"Show ends",d:"Weeknight — quick exits, most head straight home"}],notes:"Night 2 of 2. Midweek ROSALÍA. Lighter footfall. Push premium — that's where margin is with this crowd."},
+{date:"2026-05-07",name:"Tame Impala",venue:"arena",start:"20:45",doors:"18:30",genre:"psychedelic-rock/indie",cap:20000,busy:80,ig:"4M",igHandle:"@tameimpala",tickets:"Available — selling fast",night:null,crowd:"Classic indie crowd — mixed gender but skews male 25–45. Students, creatives, festival-goers. Very beer-heavy. Will linger long at the bar. Meantime is a natural fit — promote it.",pre:"very high",post:"high",drinks:[{n:"Lager/Craft Beer",p:55,c:"#4fb87a"},{n:"Spirits/Whisky",p:20,c:"#c8a96e"},{n:"Cocktails",p:15,c:"#9b72cf"},{n:"Soft Drinks",p:10,c:"#5b9bd5"}],timing:[{t:"16:00–20:30",l:"Pre-show window",d:"Beer crowd from 4pm · Doors 18:30 · Long queues at bar"},{t:"~20:45",l:"Tame Impala on stage",d:"Headliner hits — psychedelic set, known to play ~2hrs"},{t:"~22:45",l:"Show ends",d:"Big post-show — many stay for another round"}],notes:"Best beer night of the month. Meantime front and centre — this crowd engages with it. Expect long bar queues pre-show."},
+{date:"2026-05-08",name:"Ne-Yo & Akon",venue:"arena",start:"20:45",doors:"18:30",genre:"R&B/pop",cap:20000,busy:82,ig:"5M + 11M",igHandle:"@neyo / @akon",tickets:"Available",night:"Night 1 of 4",crowd:"R&B and 00s nostalgia — broad 25–50, strong Caribbean/Black British attendance, very dressed-up. Celebratory occasion night. High spirits. Expect birthday groups.",pre:"very high",post:"high",drinks:[{n:"Spirits & Mixers",p:40,c:"#e0544e"},{n:"Cocktails",p:28,c:"#9b72cf"},{n:"Lager",p:20,c:"#4fb87a"},{n:"Soft Drinks",p:12,c:"#5b9bd5"}],timing:[{t:"16:00–20:30",l:"Pre-show window",d:"Doors 17:30 · Support ~19:30 · Massive drinking window"},{t:"~20:45",l:"Ne-Yo & Akon on stage",d:"Headliners hit — two separate sets, typically 2hrs total"},{t:"~22:30",l:"Show ends",d:"Energised crowd wants to continue the night"}],notes:"Night 1 of 4. Full occasion night-out. Spirits and cocktails dominate. High spend per head. Post-show has legs."},
+{date:"2026-05-09",name:"Ne-Yo & Akon",venue:"arena",start:"20:45",doors:"18:30",genre:"R&B/pop",cap:20000,busy:82,ig:"5M + 11M",igHandle:"@neyo / @akon",tickets:"Available",night:"Night 2 of 4",crowd:"Saturday Ne-Yo & Akon — biggest of the run. Earlier arrivals, bigger groups, Saturday celebration energy.",pre:"very high",post:"very high",drinks:[{n:"Spirits & Mixers",p:42,c:"#e0544e"},{n:"Cocktails",p:30,c:"#9b72cf"},{n:"Lager",p:18,c:"#4fb87a"},{n:"Soft Drinks",p:10,c:"#5b9bd5"}],timing:[{t:"14:00–20:30",l:"Pre-show window",d:"Saturday arrivals from 2pm · Doors 17:30 · Peak surge"},{t:"~20:45",l:"Ne-Yo & Akon on stage",d:"Two-headliner show — full 2hr+ spectacle"},{t:"~22:30",l:"Show ends",d:"Saturday night — very strong post-show tail"}],notes:"Night 2 of 4 — biggest Saturday night. All hands on deck. Post-show is a proper continuation — keep music going."},
+{date:"2026-05-10",name:"Ne-Yo & Akon",venue:"arena",start:"20:45",doors:"18:30",genre:"R&B/pop",cap:20000,busy:72,ig:"5M + 11M",igHandle:"@neyo / @akon",tickets:"Available",night:"Night 3 of 4",crowd:"Sunday show — same crowd but slightly more restrained. Work Monday. Still dressed-up but quicker exits.",pre:"high",post:"moderate",drinks:[{n:"Spirits & Mixers",p:38,c:"#e0544e"},{n:"Cocktails",p:28,c:"#9b72cf"},{n:"Lager",p:22,c:"#4fb87a"},{n:"Soft Drinks",p:12,c:"#5b9bd5"}],timing:[{t:"17:30–20:30",l:"Pre-show window",d:"Doors 17:30 · Support ~19:30 · Good Sunday build"},{t:"~20:45",l:"Ne-Yo & Akon on stage",d:"Full two-headliner show"},{t:"~22:30",l:"Show ends",d:"Sunday — shorter post-show tail, most head home"}],notes:"Night 3 of 4. Prioritise pre-show capacity on Sunday. Strong spirits trade but quicker exit post-show."},
+{date:"2026-05-12",name:"Conan Gray",venue:"arena",start:"20:45",doors:"18:30",genre:"indie-pop/singer-songwriter",cap:20000,busy:65,ig:"8M",igHandle:"@conangray",tickets:"Available",night:null,crowd:"Very young (16–26), heavily female, TikTok generation. Emotionally invested. Not big drinkers — lots of soft drinks. Some parents accompanying teens.",pre:"moderate",post:"low",drinks:[{n:"Soft Drinks",p:35,c:"#5b9bd5"},{n:"Lager",p:25,c:"#4fb87a"},{n:"Cocktails",p:22,c:"#9b72cf"},{n:"Wine",p:18,c:"#c8a96e"}],timing:[{t:"17:00–20:30",l:"Pre-show window",d:"Doors 18:30 · Young crowd filtering in — food and soft drinks"},{t:"~20:45",l:"Conan Gray on stage",d:"Headliner hits"},{t:"~22:00",l:"Show ends",d:"Quick exits — young crowd, school/work next day"}],notes:"Not a heavy alcohol night. Focus on food and soft drinks. Strong volume, lower spend per head on drinks."},
+{date:"2026-05-13",name:"RÜFÜS DU SOL",venue:"arena",start:"20:45",doors:"18:30",genre:"electronic/indie",cap:20000,busy:76,ig:"2M",igHandle:"@rufusdusol",tickets:"Available",night:null,crowd:"Electronic music crowd — 25–40, mixed, professional with festival taste. Strong craft beer and spirits. Will arrive early and stay very late.",pre:"high",post:"very high",drinks:[{n:"Lager/Craft Beer",p:40,c:"#4fb87a"},{n:"Spirits/Cocktails",p:35,c:"#9b72cf"},{n:"Wine",p:15,c:"#c8a96e"},{n:"Soft Drinks",p:10,c:"#5b9bd5"}],timing:[{t:"17:00–20:30",l:"Pre-show window",d:"Doors 18:30 · Electronic crowd arrives relaxed, orders steadily"},{t:"~20:45",l:"RÜFÜS DU SOL on stage",d:"Headliner hits — electronic sets run long, typically 2hrs+"},{t:"~23:00",l:"Show ends",d:"Wants to keep dancing — biggest post-show of the week"}],notes:"Best post-show night this week. Keep music going. Push cocktails."},
+{date:"2026-05-14",name:"Ne-Yo & Akon",venue:"arena",start:"20:45",doors:"18:30",genre:"R&B/pop",cap:20000,busy:68,ig:"5M + 11M",igHandle:"@neyo / @akon",tickets:"Available",night:"Night 4 of 4",crowd:"Final night — biggest core fans who couldn't get weekend tickets. Still dressed-up R&B crowd. Slightly more restrained than weekend.",pre:"high",post:"moderate",drinks:[{n:"Spirits & Mixers",p:38,c:"#e0544e"},{n:"Cocktails",p:28,c:"#9b72cf"},{n:"Lager",p:22,c:"#4fb87a"},{n:"Soft Drinks",p:12,c:"#5b9bd5"}],timing:[{t:"17:30",l:"Pre-show",d:"Consistent build"},{t:"~21:30",l:"Post-show",d:"Thursday — moderate tail"}],notes:"Night 4 of 4 — final night of the run. Good spirits volume. Strong pre-show window."},
+{date:"2026-05-15",name:"The Neighbourhood",venue:"arena",start:"20:45",doors:"18:30",genre:"indie-rock/alternative",cap:20000,busy:70,ig:"4M",igHandle:"@thenbhd",tickets:"Available",night:null,crowd:"Alt-rock crowd — 20–35, indie fans, some emo revival energy. Casual dress, cool vibe. Beer-heavy. Relaxed and social.",pre:"high",post:"moderate",drinks:[{n:"Lager/Craft Beer",p:50,c:"#4fb87a"},{n:"Spirits",p:22,c:"#c8a96e"},{n:"Cocktails",p:18,c:"#9b72cf"},{n:"Soft Drinks",p:10,c:"#5b9bd5"}],timing:[{t:"17:30–20:30",l:"Pre-show window",d:"Doors 18:30 · Relaxed indie crowd filtering in"},{t:"~20:45",l:"The Neighbourhood on stage",d:"Headliner hits"},{t:"~22:15",l:"Show ends",d:"Friday — some carry on for another drink"}],notes:"Friday indie night — strong beer demand. Meantime fits naturally."},
+{date:"2026-05-19",name:"RAYE",venue:"arena",start:"20:45",doors:"18:30",genre:"pop/R&B",cap:20000,busy:82,ig:"5M",igHandle:"@raye",tickets:"SOLD OUT — resale only",night:"Night 1 of 2",crowd:"Diverse, passionate RAYE crowd — women-led 20–40, deeply invested. LGBTQ+ strong. Powerful, cathartic shows. Wine and cocktails over lager.",pre:"high",post:"moderate",drinks:[{n:"Wine/Prosecco",p:30,c:"#c8a96e"},{n:"Cocktails",p:28,c:"#9b72cf"},{n:"Lager",p:25,c:"#4fb87a"},{n:"Soft Drinks",p:17,c:"#5b9bd5"}],timing:[{t:"17:00–20:30",l:"Pre-show window",d:"Doors 18:30 · Fans travel — strong early build"},{t:"~20:45",l:"RAYE on stage",d:"Headliner hits — emotional, powerful set, runs ~1hr 45"},{t:"~22:30",l:"Show ends",d:"Emotional crowd — wine and cocktails to decompress"}],notes:"Night 1 of 2. One of the biggest UK shows of the year. Pre-show key — queue management critical."},
+{date:"2026-05-20",name:"RAYE",venue:"arena",start:"20:45",doors:"18:30",genre:"pop/R&B",cap:20000,busy:80,ig:"5M",igHandle:"@raye",tickets:"SOLD OUT — resale only",night:"Night 2 of 2",crowd:"Second RAYE night — Wednesday, more London-local. Same emotional, diverse profile.",pre:"high",post:"moderate",drinks:[{n:"Wine/Prosecco",p:30,c:"#c8a96e"},{n:"Cocktails",p:28,c:"#9b72cf"},{n:"Lager",p:25,c:"#4fb87a"},{n:"Soft Drinks",p:17,c:"#5b9bd5"}],timing:[{t:"17:30–20:30",l:"Pre-show window",d:"Doors 18:30 · Mid-week energy, similar build"},{t:"~20:45",l:"RAYE on stage",d:"Headliner hits"},{t:"~22:30",l:"Show ends",d:"Some post-show lingering"}],notes:"Night 2 of 2. Queue management most important."},
+{date:"2026-05-22",name:"Black Coffee",venue:"arena",start:"21:00",doors:"18:30",genre:"afro-house/electronic",cap:20000,busy:74,ig:"5M",igHandle:"@realblackcoffee",tickets:"Available",night:null,crowd:"Electronic/afro-house crowd — diverse 25–45, style-conscious. Strong South African/African diaspora. Cocktails and spirits dominate. Very social.",pre:"high",post:"very high",drinks:[{n:"Spirits/Cocktails",p:50,c:"#9b72cf"},{n:"Lager/Craft",p:28,c:"#4fb87a"},{n:"Wine",p:14,c:"#c8a96e"},{n:"Soft Drinks",p:8,c:"#5b9bd5"}],timing:[{t:"17:30–20:45",l:"Pre-show window",d:"Doors 17:30 · Electronic crowd — relaxed, late arrivals typical"},{t:"~21:00",l:"Black Coffee on stage",d:"DJ set — known to play 2hrs+, atmosphere builds throughout"},{t:"~23:00+",l:"Show ends",d:"Wants to keep going — best post-show potential of the month"}],notes:"Highest post-show potential of May. Push cocktails and spirits. Friday — give them a reason to stay."},
+{date:"2026-05-23",name:"ZAYN",venue:"arena",start:"19:45",doors:"17:30",genre:"pop/R&B",cap:20000,busy:85,ig:"53M",igHandle:"@zayn",tickets:"SOLD OUT — resale only",night:null,crowd:"ZAYN draws One Direction fandom plus South Asian/Middle Eastern community. Very dressed-up, 20–38. Full occasion night. Cocktails and prosecco lead.",pre:"very high",post:"high",drinks:[{n:"Cocktails/Prosecco",p:38,c:"#9b72cf"},{n:"Spirits/Mixers",p:30,c:"#e0544e"},{n:"Lager",p:20,c:"#4fb87a"},{n:"Soft Drinks",p:12,c:"#5b9bd5"}],timing:[{t:"15:00–19:30",l:"Pre-show window",d:"Saturday arrivals from 3pm · Doors 17:30 · Support ~18:30"},{t:"~19:45",l:"ZAYN on stage",d:"Headliner hits — earlier start, doors at 17:30"},{t:"~21:45",l:"Show ends",d:"Strong Saturday post-show — music and cocktails"}],notes:"Saturday ZAYN is a proper event. Staff ready from 3pm. Cocktails and prosecco dominate."},
+{date:"2026-05-30",name:"Ne-Yo & Akon",venue:"arena",start:"20:45",doors:"18:30",genre:"R&B/pop",cap:20000,busy:78,ig:"5M + 11M",igHandle:"@neyo / @akon",tickets:"Available",night:null,crowd:"Saturday finish — same celebratory R&B crowd. Full occasion night. Strong on spirits.",pre:"very high",post:"high",drinks:[{n:"Spirits/Mixers",p:42,c:"#e0544e"},{n:"Cocktails",p:28,c:"#9b72cf"},{n:"Lager",p:18,c:"#4fb87a"},{n:"Soft Drinks",p:12,c:"#5b9bd5"}],timing:[{t:"14:00–20:30",l:"Pre-show window",d:"Saturday arrivals from 2pm · Doors 17:30 · Strong build"},{t:"~20:45",l:"Ne-Yo & Akon on stage",d:"Two-headliner show — full spectacle"},{t:"~22:30",l:"Show ends",d:"Saturday night — strong post-show tail"}],notes:"Saturday energy. All hands on deck."},
+
+{date:"2026-05-29",name:"Doja Cat",venue:"arena",start:"20:45",doors:"18:30",genre:"hip-hop/pop",cap:20000,busy:80,ig:"25M",igHandle:"@dojacat",tickets:"Available",night:null,crowd:"Young, diverse crowd — 18–35, predominantly female but very mixed. Fashion-forward, Gen Z energy. Her Vie era fans are deeply passionate. Dressing up expected. Strong pre-show drinking.",pre:"high",post:"high",drinks:[{n:"Cocktails",p:35,c:"#9b72cf"},{n:"Spirits/Mixers",p:28,c:"#e0544e"},{n:"Lager",p:22,c:"#4fb87a"},{n:"Soft Drinks",p:15,c:"#5b9bd5"}],timing:[{t:"17:00–20:30",l:"Pre-show window",d:"Doors 18:30 · Young crowd building from 5pm"},{t:"~20:45",l:"Doja Cat on stage",d:"Full production show — ~90min"},{t:"~22:15",l:"Show ends",d:"Friday night — crowd wants to continue"}],notes:"Friday Doja Cat is a proper Gen Z night out. Cocktails and spirits lead. High energy post-show — keep the music going."},
+{date:"2026-05-30",name:"Madison Beer",venue:"arena",start:"20:45",doors:"18:30",genre:"pop/R&B",cap:20000,busy:72,ig:"9M",igHandle:"@madisonbeer",tickets:"Available",night:null,crowd:"Madison Beer crowd — 18–30, predominantly female, online-savvy, devoted. Her debut O2 show is a milestone for her fanbase. Dressed up, occasion energy. Cocktail and spirits crowd.",pre:"high",post:"moderate",drinks:[{n:"Cocktails",p:35,c:"#9b72cf"},{n:"Spirits/Mixers",p:25,c:"#e0544e"},{n:"Lager",p:22,c:"#4fb87a"},{n:"Soft Drinks",p:18,c:"#5b9bd5"}],timing:[{t:"17:00–20:30",l:"Pre-show window",d:"Doors 18:30 · Devoted fans arriving early"},{t:"~20:45",l:"Madison Beer on stage",d:"Her first O2 headline — milestone moment"},{t:"~22:15",l:"Show ends",d:"Saturday night — some post-show trade"}],notes:"Madison Beer's debut O2 headline. Occasion night. Cocktails and spirits lead over beer."},
+{date:"2026-06-05",name:"Dermot Kennedy",venue:"arena",start:"20:45",doors:"18:30",genre:"indie-folk/singer-songwriter",cap:20000,busy:70,ig:"1M",igHandle:"@dermotkennedy",tickets:"SOLD OUT — resale only",night:null,crowd:"Passionate Irish and UK folk crowd — 22–40, mixed gender, emotionally invested. Every word gets sung back. Groups and couples. Not a big drinking night but strong pre-show.",pre:"high",post:"moderate",drinks:[{n:"Lager/Craft Beer",p:38,c:"#4fb87a"},{n:"Wine",p:28,c:"#c8a96e"},{n:"Cocktails",p:20,c:"#9b72cf"},{n:"Soft Drinks",p:14,c:"#5b9bd5"}],timing:[{t:"17:00–20:30",l:"Pre-show window",d:"Doors 18:30 · Passionate fans, steady build"},{t:"~20:45",l:"Dermot Kennedy on stage",d:"Emotional powerful set — crowd sings every word"},{t:"~22:15",l:"Show ends",d:"Post-show — some linger to decompress"}],notes:"Deeply loyal fanbase. Pre-show is the main window. Wine and craft beer rather than big spirits night."},
+{date:"2026-06-11",name:"Olivia Dean",venue:"arena",start:"20:45",doors:"18:30",genre:"indie-pop/soul",cap:20000,busy:74,ig:"6M",igHandle:"@oliviadeano",tickets:"Available",night:"Night 5 of 6",crowd:"Return to The O2 — same young women-led, 18–35 crowd. Home turf energy — Olivia is from London and will have special moments planned.",pre:"high",post:"moderate",drinks:[{n:"Lager/Craft",p:30,c:"#4fb87a"},{n:"Cocktails",p:25,c:"#9b72cf"},{n:"Wine",p:25,c:"#c8a96e"},{n:"Soft Drinks",p:20,c:"#5b9bd5"}],timing:[{t:"17:00–20:30",l:"Pre-show window",d:"Doors 18:30 · Support 19:30 · Good build"},{t:"~20:45",l:"Olivia Dean on stage",d:"Headliner hits"},{t:"~22:15",l:"Show ends",d:"Thursday — moderate post-show"}],notes:"Night 5 of 6 — second O2 run. Expect special moments as a London hometown show."},
+{date:"2026-06-12",name:"Olivia Dean",venue:"arena",start:"20:45",doors:"18:30",genre:"indie-pop/soul",cap:20000,busy:76,ig:"6M",igHandle:"@oliviadeano",tickets:"Available",night:"Night 6 of 6",crowd:"The final night — Friday, emotional, sell-out energy. Last London date of the whole tour. Biggest atmosphere of all six shows. Likely guests and surprises from Olivia.",pre:"high",post:"high",drinks:[{n:"Lager/Craft",p:28,c:"#4fb87a"},{n:"Cocktails",p:28,c:"#9b72cf"},{n:"Wine",p:25,c:"#c8a96e"},{n:"Soft Drinks",p:19,c:"#5b9bd5"}],timing:[{t:"17:00–20:30",l:"Pre-show window",d:"Doors 18:30 · Support 19:30 · Friday energy"},{t:"~20:45",l:"Olivia Dean on stage",d:"Final night — biggest show of the run, likely guests"},{t:"~22:15",l:"Show ends",d:"Friday post-show — crowd wants to celebrate the end"}],notes:"Final night of the entire O2 run. Friday energy. Push post-show trade — crowd will want to extend."},
+{date:"2026-06-17",name:"Barry Manilow",venue:"arena",start:"20:30",doors:"18:30",genre:"pop/easy listening",cap:20000,busy:55,ig:"1M",igHandle:"@barrymanilow",tickets:"Available",night:null,crowd:"Older demographic — 45–70, predominantly female, Manilow superfans. Well-dressed, relaxed. Not a heavy drinking crowd. Couples and groups of friends. Early to arrive, early to leave.",pre:"moderate",post:"low",drinks:[{n:"Wine",p:40,c:"#c8a96e"},{n:"Lager/Craft",p:28,c:"#4fb87a"},{n:"Cocktails",p:18,c:"#9b72cf"},{n:"Soft Drinks",p:14,c:"#5b9bd5"}],timing:[{t:"17:00–20:00",l:"Pre-show window",d:"Doors 18:30 · Older crowd arriving steadily"},{t:"~20:30",l:"Barry Manilow on stage",d:"Earlier start for older audience"},{t:"~22:15",l:"Show ends",d:"Wednesday — quick exits, older crowd"}],notes:"Older relaxed crowd. Wine leads over beer. Good midweek food trade alongside drinks. Not a late night."},
+{date:"2026-06-18",name:"KAYTRANADA",venue:"arena",start:"21:00",doors:"18:30",genre:"electronic/dance/house",cap:20000,busy:72,ig:"2M",igHandle:"@kaytranada",tickets:"Available",night:null,crowd:"Diverse, danceable electronic crowd — 22–40, fashion-forward, mixed. Strong Black/Caribbean diaspora influence. Very social, high energy. Dance music crowd who know his catalogue deeply. Late-night energy.",pre:"high",post:"very high",drinks:[{n:"Spirits/Cocktails",p:48,c:"#9b72cf"},{n:"Lager/Craft",p:30,c:"#4fb87a"},{n:"Wine",p:12,c:"#c8a96e"},{n:"Soft Drinks",p:10,c:"#5b9bd5"}],timing:[{t:"17:30–20:45",l:"Pre-show window",d:"Doors 18:30 · Electronic crowd — relaxed late arrivals"},{t:"~21:00",l:"KAYTRANADA on stage",d:"In-the-round DJ set with full production — known to play 2hrs+"},{t:"~23:00+",l:"Show ends",d:"Late finish — wants to keep dancing"}],notes:"Best post-show evening of June. Electronic crowd will want to continue. Keep music going. Push cocktails and spirits. Thursday but this crowd doesn't care."},
+{date:"2026-06-19",name:"RNB Summer Ball — TLC, Blackstreet & Jodeci",venue:"arena",start:"19:00",doors:"17:30",genre:"R&B/90s nostalgia",cap:20000,busy:75,ig:null,igHandle:null,tickets:"Available",night:null,crowd:"90s R&B nostalgia event — 30–55, strong Black British/Caribbean attendance. Very dressed up, full occasion night. Similar to Ne-Yo & Akon energy. People making a full night of it.",pre:"very high",post:"high",drinks:[{n:"Spirits & Mixers",p:40,c:"#e0544e"},{n:"Cocktails",p:28,c:"#9b72cf"},{n:"Lager",p:20,c:"#4fb87a"},{n:"Soft Drinks",p:12,c:"#5b9bd5"}],timing:[{t:"16:00–18:45",l:"Pre-show window",d:"Doors 17:30 · Multi-act — earlier build"},{t:"~19:00",l:"Show starts",d:"TLC, Blackstreet, Jodeci across the evening"},{t:"~22:30",l:"Show ends",d:"Friday night — celebration continues, strong post-show"}],notes:"Full occasion night out. Same high-spirits R&B crowd as Ne-Yo & Akon. Push spirits and cocktails. Friday so post-show has real legs."},
+{date:"2026-06-20",name:"The B-52s & Devo",venue:"arena",start:"20:30",doors:"18:30",genre:"new wave/post-punk",cap:20000,busy:52,ig:"500K",igHandle:"@theb52s",tickets:"Available",night:null,crowd:"Older alternative/new wave crowd — 45–65, mixed gender. Eclectic, art-school types. Nostalgic but not rowdy. Will arrive steadily and leave fairly promptly. Good for food trade.",pre:"moderate",post:"low",drinks:[{n:"Lager/Craft",p:42,c:"#4fb87a"},{n:"Wine",p:28,c:"#c8a96e"},{n:"Cocktails",p:18,c:"#9b72cf"},{n:"Soft Drinks",p:12,c:"#5b9bd5"}],timing:[{t:"17:30–20:15",l:"Pre-show window",d:"Doors 18:30 · Relaxed build"},{t:"~20:30",l:"Show starts",d:"B-52s and Devo double bill"},{t:"~22:15",l:"Show ends",d:"Saturday — mostly quick exits"}],notes:"Older, relaxed crowd. Good food and craft beer trade. Not a big spirits night. Saturday but this demographic exits promptly."},
+{date:"2026-06-27",name:"Lily Allen",venue:"arena",start:"20:45",doors:"18:30",genre:"pop/indie-pop",cap:20000,busy:72,ig:"3M",igHandle:"@lilyallen",tickets:"SOLD OUT — resale only",night:"Night 1 of 3",crowd:"Devoted Lily Allen crowd — 25–45, women-led, London-heavy. West End Girl era fans plus Smile-era veterans. Occasion night out, dressed up. Politically engaged, witty crowd. Prosecco and cocktail territory.",pre:"high",post:"moderate",drinks:[{n:"Wine/Prosecco",p:35,c:"#c8a96e"},{n:"Cocktails",p:28,c:"#9b72cf"},{n:"Lager",p:24,c:"#4fb87a"},{n:"Soft Drinks",p:13,c:"#5b9bd5"}],timing:[{t:"17:00–20:30",l:"Pre-show window",d:"Doors 18:30 · Support 19:30 · Saturday build"},{t:"~20:45",l:"Lily Allen on stage",d:"Performing West End Girl in full"},{t:"~22:15",l:"Show ends",d:"Saturday post-show — some want to continue"}],notes:"Night 1 of 3. Lily Allen's West End Girl tour — album in full. Prosecco and cocktails lead. Saturday so good post-show opportunity."},
+{date:"2026-06-28",name:"Lily Allen",venue:"arena",start:"20:30",doors:"18:00",genre:"pop/indie-pop",cap:20000,busy:68,ig:"3M",igHandle:"@lilyallen",tickets:"SOLD OUT — resale only",night:"Night 2 of 3",crowd:"Sunday Lily Allen — same devoted crowd but slightly more relaxed. Earlier doors. Sunday session energy.",pre:"high",post:"moderate",drinks:[{n:"Wine/Prosecco",p:35,c:"#c8a96e"},{n:"Cocktails",p:28,c:"#9b72cf"},{n:"Lager",p:24,c:"#4fb87a"},{n:"Soft Drinks",p:13,c:"#5b9bd5"}],timing:[{t:"16:00–20:15",l:"Pre-show window",d:"Doors 18:00 · Sunday crowd arrives earlier"},{t:"~20:30",l:"Lily Allen on stage",d:"Headliner hits"},{t:"~22:00",l:"Show ends",d:"Sunday — earlier end, most leave promptly"}],notes:"Night 2 of 3. Sunday show. Good pre-show window. Earlier finish than Saturday."},
+{date:"2026-07-02",name:"Def Leppard",venue:"arena",start:"20:45",doors:"18:30",genre:"rock/classic rock",cap:20000,busy:65,ig:"3M",igHandle:"@defleppard",tickets:"Available",night:null,crowd:"Classic rock crowd — 40–65, male-skewed, passionate. Beer heavy. Will arrive in merch, pre-drinks done. Anthems crowd. Relaxed and settled in for the night.",pre:"high",post:"moderate",drinks:[{n:"Lager/Craft Beer",p:55,c:"#4fb87a"},{n:"Spirits/Whisky",p:22,c:"#c8a96e"},{n:"Cocktails",p:13,c:"#9b72cf"},{n:"Soft Drinks",p:10,c:"#5b9bd5"}],timing:[{t:"17:00–20:30",l:"Pre-show window",d:"Doors 18:30 · Rock crowd arrives steadily"},{t:"~20:45",l:"Def Leppard on stage",d:"Classic rock set — long setlist, ~2hrs"},{t:"~22:45",l:"Show ends",d:"Post-show — some stay for a round"}],notes:"Classic rock night — beer and whisky crowd. Meantime works well here. Good steady trade throughout."},
+{date:"2026-07-03",name:"Robyn",venue:"arena",start:"20:45",doors:"18:30",genre:"pop/dance",cap:20000,busy:74,ig:"2M",igHandle:"@robynishere",tickets:"Available",night:null,crowd:"One of the most devoted cult crowds in pop — 25–45, LGBTQ+ very strong, fashion-forward, emotional. Dancing In The Tears type energy. High energy, deeply emotional. Cocktails and spirits over lager.",pre:"high",post:"high",drinks:[{n:"Cocktails",p:38,c:"#9b72cf"},{n:"Spirits/Mixers",p:30,c:"#e0544e"},{n:"Lager/Craft",p:20,c:"#4fb87a"},{n:"Soft Drinks",p:12,c:"#5b9bd5"}],timing:[{t:"17:00–20:30",l:"Pre-show window",d:"Doors 18:30 · Fashion crowd — builds strongly"},{t:"~20:45",l:"Robyn on stage",d:"Intimate, emotional — dances and cries simultaneously"},{t:"~22:15",l:"Show ends",d:"Friday post-show — crowd wants to extend the night"}],notes:"Cult Friday night. LGBTQ+-heavy, emotionally charged, cocktail crowd. Post-show has real legs — keep music going. One of the best post-show crowds of July."},
+{date:"2026-07-07",name:"Lily Allen",venue:"arena",start:"20:45",doors:"18:30",genre:"pop/indie-pop",cap:20000,busy:66,ig:"3M",igHandle:"@lilyallen",tickets:"SOLD OUT — resale only",night:"Night 3 of 3",crowd:"Final Lily Allen night — Tuesday, dedicated fans who specifically got the last date. Slightly smaller but passionate. West End Girl finale energy.",pre:"high",post:"moderate",drinks:[{n:"Wine/Prosecco",p:35,c:"#c8a96e"},{n:"Cocktails",p:28,c:"#9b72cf"},{n:"Lager",p:24,c:"#4fb87a"},{n:"Soft Drinks",p:13,c:"#5b9bd5"}],timing:[{t:"17:30–20:30",l:"Pre-show window",d:"Doors 18:30 · Weeknight but dedicated fans"},{t:"~20:45",l:"Lily Allen on stage",d:"Final show of the run"},{t:"~22:15",l:"Show ends",d:"Tuesday — moderate post-show"}],notes:"Night 3 of 3 — final show. Tuesday so post-show shorter. Pre-show is your main window. Wine and prosecco lead."},
+{date:"2026-07-08",name:"Vulfpeck",venue:"arena",start:"20:45",doors:"18:30",genre:"funk/soul",cap:20000,busy:60,ig:"1M",igHandle:"@vulfpeck",tickets:"Available",night:null,crowd:"Musically literate, unique crowd — 25–45, mixed gender, indie/funk fans, many musicians in the audience. Relaxed, joyful. Not a big drinking crowd but good-natured and sociable.",pre:"moderate",post:"moderate",drinks:[{n:"Lager/Craft Beer",p:45,c:"#4fb87a"},{n:"Spirits",p:25,c:"#c8a96e"},{n:"Cocktails",p:18,c:"#9b72cf"},{n:"Soft Drinks",p:12,c:"#5b9bd5"}],timing:[{t:"17:30–20:30",l:"Pre-show window",d:"Doors 18:30 · Relaxed build"},{t:"~20:45",l:"Vulfpeck on stage",d:"Groove-heavy live set — fun and joyful"},{t:"~22:15",l:"Show ends",d:"Some post-show trade"}],notes:"Unique, musically passionate crowd. Not a high-volume drinking night but good atmosphere. Craft beer is the right push."},
+{date:"2026-07-09",name:"Sammy Hagar & Joan Jett",venue:"arena",start:"20:00",doors:"18:00",genre:"rock/classic rock",cap:20000,busy:58,ig:"500K",igHandle:"Various",tickets:"Available",night:null,crowd:"Classic rock double bill — 45–70, male-skewed, older. Strong American ex-pat/tourist element. Beer and whisky. Settled in for anthems.",pre:"moderate",post:"low",drinks:[{n:"Lager/Craft Beer",p:55,c:"#4fb87a"},{n:"Spirits/Whisky",p:25,c:"#c8a96e"},{n:"Cocktails",p:12,c:"#9b72cf"},{n:"Soft Drinks",p:8,c:"#5b9bd5"}],timing:[{t:"16:00–19:45",l:"Pre-show window",d:"Doors 18:00 · Earlier start"},{t:"~20:00",l:"Show starts",d:"Double bill — Sammy Hagar and Joan Jett"},{t:"~22:30",l:"Show ends",d:"Older crowd — most exit promptly"}],notes:"Older classic rock crowd. Good lager and whisky trade. Not a late night. Thursday so minimal post-show."},
+{date:"2026-07-10",name:"Anna Lapwood",venue:"arena",start:"20:00",doors:"18:00",genre:"classical/crossover",cap:20000,busy:52,ig:"2M",igHandle:"@annalapwood",tickets:"Available",night:"Night 1 of 2",crowd:"Unique crossover crowd — young classical fans, organ enthusiasts, general pop-classical audience. 20–50, mixed gender. Not a drinking crowd. More food-focused. Calm, sophisticated atmosphere.",pre:"low",post:"low",drinks:[{n:"Wine",p:45,c:"#c8a96e"},{n:"Soft Drinks",p:28,c:"#5b9bd5"},{n:"Lager",p:17,c:"#4fb87a"},{n:"Cocktails",p:10,c:"#9b72cf"}],timing:[{t:"16:00–19:45",l:"Pre-show window",d:"Doors 18:00 · Relaxed, food-focused arrivals"},{t:"~20:00",l:"Anna Lapwood on stage",d:"Organ/classical crossover show"},{t:"~22:00",l:"Show ends",d:"Quiet exit — not a drinking crowd"}],notes:"Not a high revenue drinks night — focus on food. Wine over everything. Good food service opportunity."},
+{date:"2026-07-11",name:"Anna Lapwood",venue:"arena",start:"20:00",doors:"18:00",genre:"classical/crossover",cap:20000,busy:52,ig:"2M",igHandle:"@annalapwood",tickets:"Available",night:"Night 2 of 2",crowd:"Saturday Anna Lapwood — same sophisticated crossover crowd. Slightly more relaxed Saturday energy.",pre:"low",post:"low",drinks:[{n:"Wine",p:45,c:"#c8a96e"},{n:"Soft Drinks",p:28,c:"#5b9bd5"},{n:"Lager",p:17,c:"#4fb87a"},{n:"Cocktails",p:10,c:"#9b72cf"}],timing:[{t:"16:00–19:45",l:"Pre-show window",d:"Doors 18:00 · Relaxed Saturday afternoon feel"},{t:"~20:00",l:"Anna Lapwood on stage",d:"Classical/organ crossover"},{t:"~22:00",l:"Show ends",d:"Saturday but this crowd exits early"}],notes:"Night 2 of 2. Wine and food. Not a big revenue night on drinks."},
+{date:"2026-07-17",name:"Prince Royce",venue:"arena",start:"20:45",doors:"18:30",genre:"Latin/bachata",cap:20000,busy:68,ig:"20M",igHandle:"@princeroyce",tickets:"Available",night:null,crowd:"Latin music crowd — 25–50, Hispanic/Latin community strong. Dressed up, occasion night. Will dance in the aisles. Good spirits consumption — this crowd celebrates.",pre:"high",post:"moderate",drinks:[{n:"Spirits & Mixers",p:38,c:"#e0544e"},{n:"Cocktails",p:28,c:"#9b72cf"},{n:"Lager",p:22,c:"#4fb87a"},{n:"Soft Drinks",p:12,c:"#5b9bd5"}],timing:[{t:"17:00–20:30",l:"Pre-show window",d:"Doors 18:30 · Latin crowd builds strongly"},{t:"~20:45",l:"Prince Royce on stage",d:"Bachata/Latin pop — romantic, danceable"},{t:"~22:30",l:"Show ends",d:"Friday post-show — celebrations continue"}],notes:"Full occasion night. Spirits and cocktails lead. Friday so good post-show window. Keep Latin music on post-show."},
+
+// AUGUST 2026 — Ariana Grande 10-night residency (all SOLD OUT)
+{date:"2026-08-01",name:"Odeal",venue:"arena",start:"20:45",doors:"18:30",genre:"afrobeats/R&B",cap:20000,busy:68,ig:"500K",igHandle:"@odeal",tickets:"Available",night:"Night 1 of 2",crowd:"Afrobeats/R&B crowd — young, diverse, Black British audience. Occasion night. High energy and dressed up.",pre:"high",post:"high",drinks:[{n:"Spirits/Mixers",p:38,c:"#e0544e"},{n:"Cocktails",p:28,c:"#9b72cf"},{n:"Lager",p:22,c:"#4fb87a"},{n:"Soft Drinks",p:12,c:"#5b9bd5"}],timing:[{t:"17:30–20:30",l:"Pre-show window",d:"Doors 18:30 · Good build"},{t:"~20:45",l:"Odeal on stage",d:"Afrobeats headline set"},{t:"~22:15",l:"Show ends",d:"Saturday post-show — strong tail"}],notes:"Rising Afrobeats star. Same high-spirits crowd profile as Ne-Yo & Akon. Spirits and cocktails lead."},
+{date:"2026-08-02",name:"Odeal",venue:"arena",start:"20:45",doors:"18:30",genre:"afrobeats/R&B",cap:20000,busy:65,ig:"500K",igHandle:"@odeal",tickets:"Available",night:"Night 2 of 2",crowd:"Same Afrobeats crowd — Sunday, slightly more restrained.",pre:"high",post:"moderate",drinks:[{n:"Spirits/Mixers",p:38,c:"#e0544e"},{n:"Cocktails",p:28,c:"#9b72cf"},{n:"Lager",p:22,c:"#4fb87a"},{n:"Soft Drinks",p:12,c:"#5b9bd5"}],timing:[{t:"17:30–20:30",l:"Pre-show window",d:"Doors 18:30"},{t:"~20:45",l:"Odeal on stage",d:"Second night"},{t:"~22:15",l:"Show ends",d:"Sunday — shorter post-show"}],notes:"Night 2 of 2. Sunday so shorter post-show tail. Pre-show is main window."},
+{date:"2026-08-12",name:"The Jesus and Mary Chain",venue:"arena",start:"20:45",doors:"18:30",genre:"alternative/shoegaze",cap:20000,busy:58,ig:"200K",igHandle:"@thejesusandmarychain",tickets:"Available",night:null,crowd:"Older alternative crowd — 40–65, male-skewed indie fans. Nostalgic but passionate. Beer and craft. Relaxed atmosphere.",pre:"moderate",post:"low",drinks:[{n:"Lager/Craft Beer",p:50,c:"#4fb87a"},{n:"Spirits",p:25,c:"#c8a96e"},{n:"Cocktails",p:15,c:"#9b72cf"},{n:"Soft Drinks",p:10,c:"#5b9bd5"}],timing:[{t:"17:30–20:30",l:"Pre-show window",d:"Doors 18:30 · Relaxed build"},{t:"~20:45",l:"The Jesus and Mary Chain on stage",d:"Shoegaze legends"},{t:"~22:15",l:"Show ends",d:"Wednesday — quick exits"}],notes:"Older alternative crowd. Beer night. Not a high revenue event but steady trade."},
+{date:"2026-08-13",name:"Tommy Richman",venue:"arena",start:"20:45",doors:"18:30",genre:"pop/R&B",cap:20000,busy:70,ig:"3M",igHandle:"@tommyrichman",tickets:"Available",night:null,crowd:"Young pop/R&B crowd — 18–30, TikTok generation, mixed gender. Fast-rising artist off the back of Million Dollar Baby. Occasion energy.",pre:"high",post:"moderate",drinks:[{n:"Cocktails",p:32,c:"#9b72cf"},{n:"Spirits/Mixers",p:28,c:"#e0544e"},{n:"Lager",p:25,c:"#4fb87a"},{n:"Soft Drinks",p:15,c:"#5b9bd5"}],timing:[{t:"17:00–20:30",l:"Pre-show window",d:"Doors 18:30 · Young crowd building"},{t:"~20:45",l:"Tommy Richman on stage",d:"High-energy set"},{t:"~22:15",l:"Show ends",d:"Post-show — Thursday, moderate tail"}],notes:"Rising star, young crowd. Cocktails and spirits lead. Good energy."},
+// ARIANA GRANDE — 10-night residency (all SOLD OUT, biggest event of the year)
+{date:"2026-08-15",name:"Ariana Grande",venue:"arena",start:"21:00",doors:"18:30",genre:"pop",cap:20000,busy:98,ig:"376M",igHandle:"@arianagrande",tickets:"SOLD OUT — no resale",night:"Night 1 of 10",crowd:"The biggest pop star in the world. Massive diverse crowd — 16–40, predominantly female, deeply passionate superfans (Arianators). Very dressed up, emotional. International fans who've flown in from across Europe. Pre-show buzz from midday. Venue complex will be packed.",pre:"very high",post:"high",drinks:[{n:"Cocktails/Prosecco",p:40,c:"#9b72cf"},{n:"Spirits/Mixers",p:28,c:"#e0544e"},{n:"Lager",p:18,c:"#4fb87a"},{n:"Soft Drinks",p:14,c:"#5b9bd5"}],timing:[{t:"14:00–20:45",l:"Pre-show window",d:"O2 complex packed from early — Arianators arrive hours before"},{t:"~21:00",l:"Ariana Grande on stage",d:"Eternal Sunshine Tour — full production, ~2hrs"},{t:"~23:00",l:"Show ends",d:"Post-show — emotional crowd, many celebrate outside"}],notes:"The biggest show of the year. 10-night sold-out residency. Staff from midday. Cocktails and prosecco dominate. O2 complex will be at maximum capacity. Prepare for highest footfall of any night this year."},
+{date:"2026-08-16",name:"Ariana Grande",venue:"arena",start:"21:00",doors:"18:00",genre:"pop",cap:20000,busy:96,ig:"376M",igHandle:"@arianagrande",tickets:"SOLD OUT — no resale",night:"Night 2 of 10",crowd:"Same Arianators — Sunday, many staying in London for the run. International fans doing multiple nights.",pre:"very high",post:"moderate",drinks:[{n:"Cocktails/Prosecco",p:40,c:"#9b72cf"},{n:"Spirits/Mixers",p:28,c:"#e0544e"},{n:"Lager",p:18,c:"#4fb87a"},{n:"Soft Drinks",p:14,c:"#5b9bd5"}],timing:[{t:"13:00–20:45",l:"Pre-show window",d:"Doors 18:00 · Sunday — arrivals earlier"},{t:"~21:00",l:"Ariana Grande on stage",d:"Night 2"},{t:"~23:00",l:"Show ends",d:"Sunday — moderate post-show"}],notes:"Night 2 — Sunday. Same massive crowd. Pre-show is key window."},
+{date:"2026-08-19",name:"Ariana Grande",venue:"arena",start:"21:00",doors:"18:30",genre:"pop",cap:20000,busy:95,ig:"376M",igHandle:"@arianagrande",tickets:"SOLD OUT — no resale",night:"Night 3 of 10",crowd:"Weekday Ariana — hardcore fans doing multiple nights. International superfans. Same intensity.",pre:"very high",post:"moderate",drinks:[{n:"Cocktails/Prosecco",p:40,c:"#9b72cf"},{n:"Spirits/Mixers",p:28,c:"#e0544e"},{n:"Lager",p:18,c:"#4fb87a"},{n:"Soft Drinks",p:14,c:"#5b9bd5"}],timing:[{t:"17:00–20:45",l:"Pre-show window",d:"Doors 18:30"},{t:"~21:00",l:"Ariana Grande on stage",d:"Night 3"},{t:"~23:00",l:"Show ends",d:"Wednesday — moderate post-show"}],notes:"Night 3 — Wednesday. Midweek but the intensity doesn't drop for Ariana shows."},
+{date:"2026-08-20",name:"Ariana Grande",venue:"arena",start:"21:00",doors:"18:30",genre:"pop",cap:20000,busy:95,ig:"376M",igHandle:"@arianagrande",tickets:"SOLD OUT — no resale",night:"Night 4 of 10",crowd:"Thursday Ariana — same superfan crowd. Building excitement mid-residency.",pre:"very high",post:"high",drinks:[{n:"Cocktails/Prosecco",p:40,c:"#9b72cf"},{n:"Spirits/Mixers",p:28,c:"#e0544e"},{n:"Lager",p:18,c:"#4fb87a"},{n:"Soft Drinks",p:14,c:"#5b9bd5"}],timing:[{t:"17:00–20:45",l:"Pre-show window",d:"Doors 18:30"},{t:"~21:00",l:"Ariana Grande on stage",d:"Night 4"},{t:"~23:00",l:"Show ends",d:"Thursday — some post-show trade"}],notes:"Night 4 — Thursday. Mid-residency. Good pre-show and some post-show."},
+{date:"2026-08-23",name:"Ariana Grande",venue:"arena",start:"21:00",doors:"18:00",genre:"pop",cap:20000,busy:97,ig:"376M",igHandle:"@arianagrande",tickets:"SOLD OUT — no resale",night:"Night 5 of 10",crowd:"Sunday Ariana — another huge day. International fans in London for the week.",pre:"very high",post:"moderate",drinks:[{n:"Cocktails/Prosecco",p:40,c:"#9b72cf"},{n:"Spirits/Mixers",p:28,c:"#e0544e"},{n:"Lager",p:18,c:"#4fb87a"},{n:"Soft Drinks",p:14,c:"#5b9bd5"}],timing:[{t:"13:00–20:45",l:"Pre-show window",d:"Doors 18:00 · Sunday arrivals early"},{t:"~21:00",l:"Ariana Grande on stage",d:"Night 5"},{t:"~23:00",l:"Show ends",d:"Sunday — moderate post-show"}],notes:"Night 5 — halfway through the residency. Sunday so pre-show is the main window."},
+{date:"2026-08-24",name:"Ariana Grande",venue:"arena",start:"21:00",doors:"18:30",genre:"pop",cap:20000,busy:95,ig:"376M",igHandle:"@arianagrande",tickets:"SOLD OUT — no resale",night:"Night 6 of 10",crowd:"Monday Ariana — dedicated fans doing another night. Residency atmosphere builds.",pre:"very high",post:"moderate",drinks:[{n:"Cocktails/Prosecco",p:40,c:"#9b72cf"},{n:"Spirits/Mixers",p:28,c:"#e0544e"},{n:"Lager",p:18,c:"#4fb87a"},{n:"Soft Drinks",p:14,c:"#5b9bd5"}],timing:[{t:"17:00–20:45",l:"Pre-show window",d:"Doors 18:30"},{t:"~21:00",l:"Ariana Grande on stage",d:"Night 6"},{t:"~23:00",l:"Show ends",d:"Monday — moderate post-show"}],notes:"Night 6. Monday so shorter post-show. Pre-show key."},
+{date:"2026-08-27",name:"Ariana Grande",venue:"arena",start:"21:00",doors:"18:30",genre:"pop",cap:20000,busy:96,ig:"376M",igHandle:"@arianagrande",tickets:"SOLD OUT — no resale",night:"Night 7 of 10",crowd:"Thursday — building to the final stretch. International fans arrive again for the final nights.",pre:"very high",post:"high",drinks:[{n:"Cocktails/Prosecco",p:40,c:"#9b72cf"},{n:"Spirits/Mixers",p:28,c:"#e0544e"},{n:"Lager",p:18,c:"#4fb87a"},{n:"Soft Drinks",p:14,c:"#5b9bd5"}],timing:[{t:"17:00–20:45",l:"Pre-show window",d:"Doors 18:30"},{t:"~21:00",l:"Ariana Grande on stage",d:"Night 7"},{t:"~23:00",l:"Show ends",d:"Thursday — good post-show"}],notes:"Night 7. Building to the finale. Good pre and post show trade."},
+{date:"2026-08-28",name:"Ariana Grande",venue:"arena",start:"21:00",doors:"18:30",genre:"pop",cap:20000,busy:97,ig:"376M",igHandle:"@arianagrande",tickets:"SOLD OUT — no resale",night:"Night 8 of 10",crowd:"Friday Ariana — second biggest night of the residency after Saturday. Pre-show from midday, O2 complex at maximum all evening.",pre:"very high",post:"very high",drinks:[{n:"Cocktails/Prosecco",p:40,c:"#9b72cf"},{n:"Spirits/Mixers",p:28,c:"#e0544e"},{n:"Lager",p:18,c:"#4fb87a"},{n:"Soft Drinks",p:14,c:"#5b9bd5"}],timing:[{t:"14:00–20:45",l:"Pre-show window",d:"Doors 18:30 · Friday energy — O2 complex packed"},{t:"~21:00",l:"Ariana Grande on stage",d:"Night 8 — penultimate Friday"},{t:"~23:00",l:"Show ends",d:"Friday post-show — very strong tail"}],notes:"Night 8 — Friday. Second biggest night of the run. All hands on deck. Very strong post-show."},
+{date:"2026-08-31",name:"Ariana Grande",venue:"arena",start:"21:00",doors:"18:00",genre:"pop",cap:20000,busy:97,ig:"376M",igHandle:"@arianagrande",tickets:"SOLD OUT — no resale",night:"Night 9 of 10",crowd:"Monday penultimate night — hardcore fans, many doing their final night. Emotional energy building to the finale.",pre:"very high",post:"high",drinks:[{n:"Cocktails/Prosecco",p:40,c:"#9b72cf"},{n:"Spirits/Mixers",p:28,c:"#e0544e"},{n:"Lager",p:18,c:"#4fb87a"},{n:"Soft Drinks",p:14,c:"#5b9bd5"}],timing:[{t:"16:00–20:45",l:"Pre-show window",d:"Doors 18:00 · Bank holiday Monday"},{t:"~21:00",l:"Ariana Grande on stage",d:"Night 9 — penultimate show"},{t:"~23:00",l:"Show ends",d:"Bank holiday so good post-show trade"}],notes:"Night 9 — Bank holiday Monday. Better post-show than a normal Monday. Pre-show packed all afternoon."},
+{date:"2026-09-01",name:"Ariana Grande",venue:"arena",start:"21:00",doors:"18:30",genre:"pop",cap:20000,busy:99,ig:"376M",igHandle:"@arianagrande",tickets:"SOLD OUT — no resale",night:"Night 10 of 10 — FINALE",crowd:"THE FINAL NIGHT. The emotion in this building will be unlike anything else this year. Every Arianator who could get a ticket will be here. International fans, celebrities, the whole world watching. Plan for absolute maximum on every front.",pre:"very high",post:"very high",drinks:[{n:"Cocktails/Prosecco",p:42,c:"#9b72cf"},{n:"Spirits/Mixers",p:28,c:"#e0544e"},{n:"Lager",p:18,c:"#4fb87a"},{n:"Soft Drinks",p:12,c:"#5b9bd5"}],timing:[{t:"12:00–20:45",l:"Pre-show window",d:"Finale day — fans arrive from midday, O2 complex at absolute max"},{t:"~21:00",l:"Ariana Grande on stage",d:"FINALE — will be emotional, extended, special guests expected"},{t:"~23:30+",l:"Show ends",d:"Finale — biggest post-show of the entire year"}],notes:"THE FINALE. Maximum staffing all day. This is your biggest single night of 2026. Post-show will be enormous — keep the bar going as long as possible."},
+// SEPTEMBER 2026
+{date:"2026-09-10",name:"Hilary Duff",venue:"arena",start:"20:45",doors:"18:30",genre:"pop",cap:20000,busy:62,ig:"17M",igHandle:"@hilaryduff",tickets:"Available",night:"Night 1 of 2",crowd:"Hilary Duff draws a 90s/00s nostalgia crowd — 25–40, women-led, devoted millennial fans. The Lucky Me Tour is a career celebration. Dressed up, occasion energy. Prosecco and cocktail crowd.",pre:"high",post:"moderate",drinks:[{n:"Wine/Prosecco",p:35,c:"#c8a96e"},{n:"Cocktails",p:28,c:"#9b72cf"},{n:"Lager",p:24,c:"#4fb87a"},{n:"Soft Drinks",p:13,c:"#5b9bd5"}],timing:[{t:"17:00–20:30",l:"Pre-show window",d:"Doors 18:30 · Good pre-show"},{t:"~20:45",l:"Hilary Duff on stage",d:"Nostalgic pop set"},{t:"~22:15",l:"Show ends",d:"Thursday — moderate post-show"}],notes:"Nostalgic millennial crowd. Wine and prosecco lead. Good pre-show window."},
+{date:"2026-09-12",name:"The Waterboys",venue:"arena",start:"20:30",doors:"18:30",genre:"rock/Celtic",cap:20000,busy:55,ig:"200K",igHandle:"@thewaterboys",tickets:"Available",night:null,crowd:"Older rock/Celtic crowd — 45–70, mixed gender. The Whole of the Moon fans. Beer and wine. Relaxed and nostalgic.",pre:"moderate",post:"low",drinks:[{n:"Lager/Craft Beer",p:45,c:"#4fb87a"},{n:"Wine",p:30,c:"#c8a96e"},{n:"Spirits",p:15,c:"#c8a96e"},{n:"Soft Drinks",p:10,c:"#5b9bd5"}],timing:[{t:"17:30–20:15",l:"Pre-show window",d:"Doors 18:30"},{t:"~20:30",l:"The Waterboys on stage",d:"Celtic rock classics"},{t:"~22:15",l:"Show ends",d:"Saturday — moderate tail"}],notes:"Older, relaxed crowd. Beer and wine. Good Saturday atmosphere."},
+{date:"2026-09-13",name:"Evanescence",venue:"arena",start:"20:45",doors:"18:30",genre:"rock/metal",cap:20000,busy:68,ig:"5M",igHandle:"@evanescence",tickets:"Available",night:null,crowd:"Rock/metal crowd — 25–45, mixed gender. Passionate, intense fans. Bring Me To Life energy. Beer-heavy. Will be dressed in black. Good atmosphere.",pre:"high",post:"moderate",drinks:[{n:"Lager/Craft Beer",p:48,c:"#4fb87a"},{n:"Spirits/Whisky",p:28,c:"#c8a96e"},{n:"Cocktails",p:14,c:"#9b72cf"},{n:"Soft Drinks",p:10,c:"#5b9bd5"}],timing:[{t:"17:00–20:30",l:"Pre-show window",d:"Doors 18:30 · Rock crowd building"},{t:"~20:45",l:"Evanescence on stage",d:"Intense, theatrical rock show"},{t:"~22:30",l:"Show ends",d:"Sunday — moderate post-show"}],notes:"Rock/metal crowd. Beer and whisky. Good passionate atmosphere. Sunday so shorter post-show."},
+{date:"2026-09-15",name:"Hilary Duff",venue:"arena",start:"20:45",doors:"18:30",genre:"pop",cap:20000,busy:60,ig:"17M",igHandle:"@hilaryduff",tickets:"Available",night:"Night 2 of 2",crowd:"Second Hilary Duff night — Tuesday, dedicated fans who wanted a second night. Same nostalgic millennial crowd.",pre:"high",post:"moderate",drinks:[{n:"Wine/Prosecco",p:35,c:"#c8a96e"},{n:"Cocktails",p:28,c:"#9b72cf"},{n:"Lager",p:24,c:"#4fb87a"},{n:"Soft Drinks",p:13,c:"#5b9bd5"}],timing:[{t:"17:00–20:30",l:"Pre-show window",d:"Doors 18:30"},{t:"~20:45",l:"Hilary Duff on stage",d:"Final night"},{t:"~22:15",l:"Show ends",d:"Tuesday — shorter post-show"}],notes:"Night 2. Tuesday so pre-show is main window. Wine and prosecco crowd."},
+// LAVER CUP — Sep 25-27 (tennis, daytime + evening sessions)
+{date:"2026-09-25",name:"Laver Cup 2026",venue:"arena",start:"13:00",doors:"12:00",genre:"sport/tennis",cap:20000,busy:55,ig:null,igHandle:null,tickets:"Available",night:null,crowd:"Tennis crowd — 30–65, affluent, mixed. Polite, engaged. Will watch across multiple sessions. Food-focused. Wine and cocktails over beer. Corporate presence strong.",pre:"moderate",post:"low",drinks:[{n:"Wine",p:38,c:"#c8a96e"},{n:"Cocktails",p:28,c:"#9b72cf"},{n:"Lager",p:22,c:"#4fb87a"},{n:"Soft Drinks",p:12,c:"#5b9bd5"}],timing:[{t:"12:00–13:00",l:"Arrivals",d:"Daytime session — afternoon crowd"},{t:"~19:00",l:"Evening session",d:"Second session — busier"},{t:"~22:00",l:"Session ends",d:"Polite exit"}],notes:"Laver Cup is a 3-day tennis event. Runs Fri-Sun. Affluent crowd — wine and cocktails. Good food trade. Not a big drinking occasion but high spend per head."},
+{date:"2026-09-26",name:"Laver Cup 2026",venue:"arena",start:"13:00",doors:"12:00",genre:"sport/tennis",cap:20000,busy:58,ig:null,igHandle:null,tickets:"Available",night:null,crowd:"Same tennis crowd — Saturday, busier. Bigger atmosphere for the weekend session.",pre:"moderate",post:"moderate",drinks:[{n:"Wine",p:38,c:"#c8a96e"},{n:"Cocktails",p:28,c:"#9b72cf"},{n:"Lager",p:22,c:"#4fb87a"},{n:"Soft Drinks",p:12,c:"#5b9bd5"}],timing:[{t:"12:00–13:00",l:"Arrivals",d:"Saturday — busier"},{t:"~19:00",l:"Evening session",d:"Biggest session of the weekend"},{t:"~22:00",l:"Session ends",d:"Saturday — some post-session trade"}],notes:"Laver Cup Saturday — biggest day of the three. Wine and cocktail crowd. Good food trade."},
+{date:"2026-09-27",name:"Laver Cup 2026",venue:"arena",start:"13:00",doors:"12:00",genre:"sport/tennis",cap:20000,busy:55,ig:null,igHandle:null,tickets:"Available",night:null,crowd:"Sunday Laver Cup final — deciding day. Good atmosphere. Same affluent tennis crowd.",pre:"moderate",post:"low",drinks:[{n:"Wine",p:38,c:"#c8a96e"},{n:"Cocktails",p:28,c:"#9b72cf"},{n:"Lager",p:22,c:"#4fb87a"},{n:"Soft Drinks",p:12,c:"#5b9bd5"}],timing:[{t:"12:00–13:00",l:"Arrivals",d:"Sunday final day"},{t:"~19:00",l:"Final session",d:"Deciding matches"},{t:"~22:00",l:"Ends",d:"Sunday — quick exit"}],notes:"Final day of Laver Cup. Wine and cocktails. Good food trade. Sunday so quick exits after."},
+// OCTOBER 2026
+{date:"2026-10-06",name:"The Strokes",venue:"arena",start:"20:45",doors:"18:30",genre:"indie-rock",cap:20000,busy:72,ig:"3M",igHandle:"@thestrokes",tickets:"Available",night:"Night 1 of 2",crowd:"The Strokes draw the classic indie-rock crowd — 25–45, male-skewed, fashion-conscious. New York cool energy. Devoted, knowledgeable fans. Beer and craft. Fat White Family support adds edge.",pre:"high",post:"high",drinks:[{n:"Lager/Craft Beer",p:52,c:"#4fb87a"},{n:"Spirits",p:22,c:"#c8a96e"},{n:"Cocktails",p:16,c:"#9b72cf"},{n:"Soft Drinks",p:10,c:"#5b9bd5"}],timing:[{t:"17:00–20:30",l:"Pre-show window",d:"Doors 18:30 · Indie crowd arriving"},{t:"~20:45",l:"The Strokes on stage",d:"Last Nite, Reptilia, New York City Cops..."},{t:"~22:30",l:"Show ends",d:"Tuesday post-show — some stay on"}],notes:"The Strokes fans love a post-show drink. Beer crowd. Meantime fits perfectly here. Tuesday so moderate tail."},
+{date:"2026-10-07",name:"The Strokes",venue:"arena",start:"20:45",doors:"18:30",genre:"indie-rock",cap:20000,busy:74,ig:"3M",igHandle:"@thestrokes",tickets:"Available",night:"Night 2 of 2",crowd:"Second Strokes night — Wednesday. Same cool indie crowd. Final night energy.",pre:"high",post:"high",drinks:[{n:"Lager/Craft Beer",p:52,c:"#4fb87a"},{n:"Spirits",p:22,c:"#c8a96e"},{n:"Cocktails",p:16,c:"#9b72cf"},{n:"Soft Drinks",p:10,c:"#5b9bd5"}],timing:[{t:"17:00–20:30",l:"Pre-show window",d:"Doors 18:30"},{t:"~20:45",l:"The Strokes on stage",d:"Final night — best atmosphere of the two"},{t:"~22:30",l:"Show ends",d:"Wednesday — good post-show for this crowd"}],notes:"Night 2 — final show. The Strokes crowd will want to keep going. Beer and craft beer dominant."},
+{date:"2026-10-09",name:"Westlife",venue:"arena",start:"20:45",doors:"18:30",genre:"pop",cap:20000,busy:78,ig:"5M",igHandle:"@westlifemusic",tickets:"Available",night:"Night 1 of 3",crowd:"Westlife draws a devoted, nostalgic crowd — 30–50, women-led, Irish and UK fans. Very dressed up, occasion night. Will be singing every word. Prosecco and cocktails. Big celebration energy.",pre:"very high",post:"high",drinks:[{n:"Wine/Prosecco",p:38,c:"#c8a96e"},{n:"Cocktails",p:28,c:"#9b72cf"},{n:"Spirits/Mixers",p:22,c:"#e0544e"},{n:"Soft Drinks",p:12,c:"#5b9bd5"}],timing:[{t:"17:00–20:30",l:"Pre-show window",d:"Doors 18:30 · Fans arrive dressed up"},{t:"~20:45",l:"Westlife on stage",d:"Full nostalgic pop set"},{t:"~22:15",l:"Show ends",d:"Friday post-show — strong tail"}],notes:"Night 1 of 3 — Friday. Westlife fans treat it as a full occasion night. Prosecco and cocktails lead. Good post-show."},
+{date:"2026-10-10",name:"Westlife",venue:"arena",start:"20:45",doors:"18:30",genre:"pop",cap:20000,busy:80,ig:"5M",igHandle:"@westlifemusic",tickets:"Available",night:"Night 2 of 3",crowd:"Saturday Westlife — biggest of the three nights. Same devoted crowd at peak Saturday energy. Many staying in London for the weekend.",pre:"very high",post:"very high",drinks:[{n:"Wine/Prosecco",p:38,c:"#c8a96e"},{n:"Cocktails",p:28,c:"#9b72cf"},{n:"Spirits/Mixers",p:22,c:"#e0544e"},{n:"Soft Drinks",p:12,c:"#5b9bd5"}],timing:[{t:"14:00–20:30",l:"Pre-show window",d:"Saturday arrivals from early afternoon"},{t:"~20:45",l:"Westlife on stage",d:"Biggest night of the run"},{t:"~22:15",l:"Show ends",d:"Saturday post-show — very strong"}],notes:"Night 2 — Saturday. Biggest night. All hands on deck. Post-show very strong."},
+{date:"2026-10-11",name:"Westlife",venue:"arena",start:"20:45",doors:"18:30",genre:"pop",cap:20000,busy:72,ig:"5M",igHandle:"@westlifemusic",tickets:"Available",night:"Night 3 of 3",crowd:"Sunday Westlife — final night. Slightly more restrained than Saturday but still passionate. Some will have been to both previous nights.",pre:"high",post:"moderate",drinks:[{n:"Wine/Prosecco",p:38,c:"#c8a96e"},{n:"Cocktails",p:28,c:"#9b72cf"},{n:"Spirits/Mixers",p:22,c:"#e0544e"},{n:"Soft Drinks",p:12,c:"#5b9bd5"}],timing:[{t:"17:00–20:30",l:"Pre-show window",d:"Doors 18:30 · Sunday crowd"},{t:"~20:45",l:"Westlife on stage",d:"Final night"},{t:"~22:15",l:"Show ends",d:"Sunday — shorter post-show"}],notes:"Night 3 — Sunday final. Pre-show is main window. Prosecco and cocktails lead."},
+
+// ── NEWLY ADDED SHOWS ─────────────────────────────────────
+{date:"2026-06-03",name:"TWICE",venue:"arena",start:"20:45",doors:"18:30",genre:"K-pop",cap:20000,busy:88,ig:"45M",igHandle:"@twicetagram",tickets:"SOLD OUT — resale only",night:"Night 1 of 2",crowd:"K-pop fandom at its most intense — ONCE (TWICE's fanbase) are among the most devoted in music. Predominantly young women 16–30, many in fan merch and coordinated outfits. International fans who've travelled from Europe and beyond for the closing dates of the tour. 360-degree stage means every seat is front-row energy. Very high emotion, lots of fan chants and coordinated light shows.",pre:"high",post:"moderate",drinks:[{n:"Soft Drinks",p:30,c:"#5b9bd5"},{n:"Cocktails",p:28,c:"#9b72cf"},{n:"Lager",p:22,c:"#4fb87a"},{n:"Wine/Prosecco",p:20,c:"#c8a96e"}],timing:[{t:"17:00–20:30",l:"Pre-show window",d:"Doors 18:30 · Fans arrive early — pre-show ritual is important to this crowd"},{t:"~20:45",l:"TWICE on stage",d:"360° production — technically spectacular, ~2hrs"},{t:"~22:45",l:"Show ends",d:"Emotional exit — fans will linger outside"}],notes:"Night 1 of 2, closing the entire world tour in London. Huge occasion. Not the heaviest drinking crowd — younger demographic and K-pop culture skews away from alcohol. Food and soft drinks will be strong. High spend on merch in the complex."},
+{date:"2026-06-04",name:"TWICE",venue:"arena",start:"20:45",doors:"18:30",genre:"K-pop",cap:20000,busy:90,ig:"45M",igHandle:"@twicetagram",tickets:"SOLD OUT — resale only",night:"Night 2 of 2 — FINAL SHOW",crowd:"The final night of TWICE's entire world tour. Every ONCE who could get a ticket is here. Expect maximum emotion, fan projects, and an extended encore. International fans at peak intensity.",pre:"high",post:"moderate",drinks:[{n:"Soft Drinks",p:30,c:"#5b9bd5"},{n:"Cocktails",p:28,c:"#9b72cf"},{n:"Lager",p:22,c:"#4fb87a"},{n:"Wine/Prosecco",p:20,c:"#c8a96e"}],timing:[{t:"17:00–20:30",l:"Pre-show window",d:"Doors 18:30 · Final night energy — fans arrive early"},{t:"~20:45",l:"TWICE on stage",d:"World tour finale — expect extended show and special moments"},{t:"~23:00+",l:"Show ends",d:"Late finish — emotional crowd will linger"}],notes:"World tour finale. One of the biggest K-pop occasions at The O2. Soft drinks and food will outperform drinks on revenue. Merch queue in the complex will be enormous."},
+{date:"2026-06-06",name:"Gabriel Iglesias",venue:"arena",start:"20:30",doors:"18:30",genre:"stand-up comedy",cap:20000,busy:65,ig:"17M",igHandle:"@fluffyguy",tickets:"Available",night:null,crowd:"Gabriel Iglesias — 'Fluffy' — draws a broad, family-friendly comedy crowd. 25–55, very mixed including strong Latin/Hispanic community who are devoted to his material. Relaxed, happy atmosphere. Not a drinking occasion — people are there to laugh, not drink. Good food trade.",pre:"moderate",post:"low",drinks:[{n:"Soft Drinks",p:35,c:"#5b9bd5"},{n:"Lager",p:28,c:"#4fb87a"},{n:"Wine",p:22,c:"#c8a96e"},{n:"Cocktails",p:15,c:"#9b72cf"}],timing:[{t:"17:30–20:00",l:"Pre-show window",d:"Doors 18:30 · Family and groups settling in"},{t:"~20:30",l:"Gabriel Iglesias on stage",d:"Stand-up set — typically 90 mins"},{t:"~22:00",l:"Show ends",d:"Saturday — some post-show but mostly head home"}],notes:"Comedy crowd — food and soft drinks over alcohol. Relaxed Saturday night atmosphere. Good family trade. Not a big revenue night on drinks but solid food and soft drinks."},
+{date:"2026-06-10",name:"FKA Twigs",venue:"arena",start:"20:45",doors:"18:30",genre:"electronic/avant-garde/art-pop",cap:20000,busy:72,ig:"3M",igHandle:"@fkatwigs",tickets:"Available — limited",night:null,crowd:"FKA Twigs is one of the most artistically adventurous performers alive. Her crowd reflects that — 22–40, very mixed including LGBTQ+ very strong, fashion-forward, art and dance world. She brings pole artistry, martial arts, vogueing to the stage. This is a show-as-art-installation crowd. Not a heavy drinking occasion — people are there to witness something. Cocktails and wine over lager.",pre:"moderate",post:"moderate",drinks:[{n:"Cocktails",p:35,c:"#9b72cf"},{n:"Wine",p:25,c:"#c8a96e"},{n:"Lager/Craft",p:22,c:"#4fb87a"},{n:"Soft Drinks",p:18,c:"#5b9bd5"}],timing:[{t:"17:30–20:30",l:"Pre-show window",d:"Doors 18:30 · Yves Tumor support from ~19:30"},{t:"~20:45",l:"FKA Twigs on stage",d:"BODY HIGH tour — immersive, theatrical, ~90 mins"},{t:"~22:15",l:"Show ends",d:"Thoughtful, emotional exit"}],notes:"Her biggest ever UK headline show. Artistically important night. Cocktails and wine lead over beer. Crowd will be engaged and attentive during show — pre-show is best drinking window. Support act Yves Tumor is also a significant artist."},
+
+{date:"2026-05-25",name:"Baller League UK — 2026 Final Four",venue:"arena",start:"19:00",doors:"14:00",genre:"sport/entertainment",cap:20000,busy:75,ig:"500K",igHandle:"@ballerleague_uk",tickets:"Available",night:null,crowd:"Baller League is influencer/creator football — think KSI, Niko Omilana, Ian Wright. Massive Gen Z and young millennial crowd, predominantly male 16–30, but broad and very social. This is an event as much as a sport — content creators have millions of followers and their fans travel. High energy, loud, festive atmosphere. Similar to a boxing crossover event. Will be drinking but also food-focused.",pre:"high",post:"high",drinks:[{n:"Lager",p:42,c:"#4fb87a"},{n:"Spirits/Mixers",p:28,c:"#e0544e"},{n:"Cocktails",p:18,c:"#9b72cf"},{n:"Soft Drinks",p:12,c:"#5b9bd5"}],timing:[{t:"14:00–18:00",l:"Afternoon session",d:"Bank holiday Monday — early doors, family and young crowd from early afternoon"},{t:"~18:00",l:"Main event begins",d:"Semi-finals and final — electric atmosphere"},{t:"~21:30",l:"Event ends",d:"Bank holiday so good post-event trade"}],notes:"Bank holiday Monday. Creator football draws a massive, energetic young crowd. Similar revenue profile to a boxing night — lager and spirits, high energy. Afternoon start means longer trade window. KSI and Niko Omilana have combined 50M+ YouTube subs — their fans are very active."},
+
+{date:"2026-05-26",name:"Harlem Globetrotters",venue:"arena",start:"20:00",doors:"17:30",genre:"sport/family entertainment",cap:20000,busy:55,ig:"2M",igHandle:"@harlemglobetrotters",tickets:"Available",night:null,crowd:"Family entertainment crowd — broad age range, lots of young children with parents and grandparents. Not a drinking occasion at all. Food and soft drinks dominate heavily. Early-ish start on a Tuesday evening. Very wholesome, relaxed atmosphere. Revenue per head will be lower on drinks but high on food and soft drinks.",pre:"low",post:"low",drinks:[{n:"Soft Drinks",p:50,c:"#5b9bd5"},{n:"Lager",p:22,c:"#4fb87a"},{n:"Wine",p:18,c:"#c8a96e"},{n:"Cocktails",p:10,c:"#9b72cf"}],timing:[{t:"17:30–19:30",l:"Family arrivals",d:"Doors 17:30 · Families with children settling in early"},{t:"~20:00",l:"Globetrotters on court",d:"Family entertainment show — tricks, comedy, basketball"},{t:"~22:00",l:"Show ends",d:"Tuesday — families head home promptly"}],notes:"Family crowd — not a drinking night. Focus on food, soft drinks, and kids' items. Revenue per head lower than a music show. Staff accordingly — food service is the priority tonight."},
+
+{date:"2026-05-28",name:"BetMGM Premier League Darts — Play-Offs Night",venue:"arena",start:"19:30",doors:"18:00",genre:"sport/darts",cap:20000,busy:70,ig:null,igHandle:null,tickets:"Available",night:null,crowd:"Premier League Darts draws a brilliant pub crowd — broad 25–60, predominantly male, very beer-heavy. Fancy dress is common. Loud, rowdy and good-natured. These crowds are known for being some of the best in any sport — boisterous, funny, and very consistent on the lager. Expect groups of lads on a night out treating it like a football match. Long pre-event drinking window as doors are 6pm.",pre:"very high",post:"high",drinks:[{n:"Lager",p:62,c:"#4fb87a"},{n:"Spirits/Shots",p:20,c:"#e0544e"},{n:"Cocktails",p:10,c:"#9b72cf"},{n:"Soft Drinks",p:8,c:"#5b9bd5"}],timing:[{t:"18:00–19:15",l:"Pre-event drinking",d:"Doors 6pm — darts crowds drink heavily pre-event"},{t:"~19:30",l:"Play-offs begin",d:"Top 4 players competing — quarter-finals format"},{t:"~23:00",l:"Event ends",d:"Thursday night — good post-event trade, some staying on"}],notes:"Darts crowds are your best beer nights outside of a rock concert. Lager absolutely dominates — push pints hard. Fancy dress means a celebratory, rowdy atmosphere. Pre-event window from 6pm is massive. BetMGM Premier League Darts play-offs is a big occasion — £1.25m prize fund, world's best players."},
+];
+
+const INDIGO=[
+{date:"2026-05-01",name:"Comedy Night",t:"18:30"},{date:"2026-05-02",name:"Matinee Event",t:"16:00"},{date:"2026-05-03",name:"Late Night Club",t:"22:00"},{date:"2026-05-07",name:"Live Music",t:"19:00"},{date:"2026-05-08",name:"Live Music",t:"19:00"},{date:"2026-05-09",name:"Live Music",t:"19:00"},{date:"2026-05-10",name:"Matinee Show",t:"14:00"},{date:"2026-05-15",name:"Live Music",t:"18:30"},{date:"2026-05-16",name:"Live Music",t:"19:00"},{date:"2026-05-22",name:"Live Music",t:"18:30"},{date:"2026-05-23",name:"Ten Years After",t:"19:00"},{date:"2026-05-30",name:"Aryana Sayeed",t:"18:00"},
+];
+
+// ================================================================
+// SPORTS EVENTS — All times verified in BST (British Summer Time)
+// Last verified: 30 April 2026 against official club/PL sources
+// boost = additional busyness pts on top of any O2 show same day
+// solo  = standalone busyness when no O2 show that day
+// ================================================================
+const SPORTS=[
+
+// ---- PREMIER LEAGUE RUN-IN ----
+// Arsenal's May fixtures confirmed by Arsenal.com:
+//   Sat 2 May 17:30 vs Fulham | Sun 10 May 16:30 at West Ham
+//   Mon 18 May 20:00 vs Burnley | Sun 24 May 16:00 at Crystal Palace
+// Man City fixtures confirmed by ManCity.com & PL:
+//   Mon 4 May 20:00 at Everton | Sat 9 May 17:30 vs Brentford
+//   Wed 13 May 20:00 vs Crystal Palace | Tue 19 May 19:30 at Bournemouth
+
+{type:"pl",date:"2026-05-02",name:"Arsenal vs Fulham",ko:"Sat 2 May · 17:30 BST · Sky Sports",boost:8,solo:42,
+ impact:"MODERATE",impact_class:"moderate"},
+
+{type:"pl",date:"2026-05-03",name:"Man Utd vs Liverpool",ko:"Sun 3 May · 15:30 BST · Sky Sports",boost:5,solo:32,
+ impact:"LOW-MODERATE",impact_class:"moderate"},
+
+{type:"pl",date:"2026-05-04",name:"Everton vs Man City",ko:"Mon 4 May · 20:00 BST · Sky Sports",boost:4,solo:28,
+ impact:"LOW",impact_class:"moderate"},
+
+{type:"pl",date:"2026-05-09",name:"Man City vs Brentford",ko:"Sat 9 May · 17:30 BST · Sky Sports",boost:6,solo:34,
+ impact:"LOW-MODERATE",impact_class:"moderate"},
+
+{type:"pl",date:"2026-05-10",name:"West Ham vs Arsenal",ko:"Sun 10 May · 16:30 BST · Sky Sports",boost:12,solo:48,
+ impact:"MODERATE",impact_class:"moderate"},
+
+{type:"pl",date:"2026-05-13",name:"Man City vs Crystal Palace",ko:"Wed 13 May · 20:00 BST · Sky Sports",boost:4,solo:24,
+ impact:"LOW",impact_class:"moderate"},
+
+{type:"pl",date:"2026-05-16",name:"FA Cup Final — Chelsea vs Man City",ko:"Sat 16 May · 15:00 BST · BBC One / TNT Sports",boost:14,solo:55,
+ impact:"MODERATE-HIGH",impact_class:"high"},
+
+{type:"pl",date:"2026-05-17",name:"Aston Villa vs Liverpool (& other PL fixtures)",ko:"Sun 17 May · Various BST · Sky Sports",boost:4,solo:28,
+ impact:"LOW",impact_class:"moderate",games:["🏟 Aston Villa vs Liverpool · 12:30 BST · Sky Sports","🏟 Newcastle vs West Ham · 17:30 BST · Sky Sports","🏟 Multiple MW37 fixtures across the afternoon"]},
+
+{type:"pl",date:"2026-05-18",name:"Arsenal vs Burnley",ko:"Mon 18 May · 20:00 BST · Sky Sports MNF",boost:10,solo:44,
+ impact:"MODERATE",impact_class:"moderate"},
+
+{type:"pl",date:"2026-05-19",name:"Man City vs Bournemouth",ko:"Tue 19 May · 19:30 BST · Sky Sports",boost:3,solo:20,
+ impact:"LOW",impact_class:"moderate"},
+
+{type:"pl",date:"2026-05-24",name:"PL FINAL DAY — Crystal Palace vs Arsenal",ko:"Sun 24 May · 16:00 BST · All games simultaneous · Sky Sports",boost:16,solo:60,
+ impact:"MODERATE-HIGH",impact_class:"high"},
+
+// ---- CHAMPIONS LEAGUE ----
+{type:"ucl",date:"2026-05-05",name:"UCL Semi-Final 2nd Leg — Arsenal vs Atlético Madrid",ko:"Tue 5 May · 20:00 BST · TNT Sports",boost:12,solo:50,
+ impact:"MODERATE-HIGH",impact_class:"high"},
+
+{type:"ucl",date:"2026-05-06",name:"UCL Semi-Final 2nd Leg — Bayern Munich vs PSG",ko:"Wed 6 May · 20:00 BST · TNT Sports",boost:4,solo:24,
+ impact:"LOW",impact_class:"moderate"},
+
+{type:"ucl",date:"2026-05-30",name:"Champions League Final",ko:"Sat 30 May · 20:00 BST · TNT Sports",boost:12,solo:50,
+ impact:"MODERATE",impact_class:"moderate"},
+
+// ---- WORLD CUP 2026 ----
+{type:"wc",date:"2026-06-17",name:"World Cup — England vs Croatia",ko:"Wed 17 June · 21:00 BST · ITV / BBC",boost:16,solo:62,
+ impact:"MODERATE-HIGH",impact_class:"high"},
+
+{type:"wc",date:"2026-06-23",name:"World Cup — England vs Ghana",ko:"Tue 23 June · 21:00 BST · ITV / BBC",boost:14,solo:56,
+ impact:"MODERATE",impact_class:"moderate"},
+
+{type:"wc",date:"2026-06-27",name:"World Cup — England vs Panama",ko:"Sat 27 June · 22:00 BST · ITV / BBC",boost:14,solo:56,
+ impact:"MODERATE",impact_class:"moderate"},
+
+// ---- BOXING ----
+{type:"boxing",date:"2026-05-09",name:"🥊 Wardley vs Dubois — WBO Heavyweight Title",ko:"Sat 9 May · Undercard 19:00 BST · Main event ~22:00 BST · DAZN PPV",boost:7,solo:36,
+ impact:"LOW-MODERATE",impact_class:"moderate"},
+
+{type:"boxing",date:"2026-05-23",name:"🥊 Usyk vs Verhoeven — WBC Heavyweight Title",ko:"Sat 23 May · Main event ~22:00 BST · DAZN PPV",boost:5,solo:28,
+ impact:"LOW",impact_class:"moderate"},
+
+{type:"boxing",date:"2026-06-13",name:"🥊 Tommy Fury vs Eddie Hall — Misfits Boxing",ko:"Sat 13 June · Undercard 19:00 BST · Main event ~22:00 BST · DAZN",boost:8,solo:36,
+ impact:"LOW-MODERATE",impact_class:"moderate"},
+
+// ---- WORLD CUP 2026 — GROUP STAGE (all UK BST times, verified from Sky Sports/England FA) ----
+// Opening: Thu 11 Jun 2026. Final: Sun 19 Jul 2026.
+// England group: vs Croatia 17 Jun 21:00 | vs Ghana 23 Jun 21:00 | vs Panama 27 Jun 22:00
+// Only including fixtures with UK-watchable times (before 1am BST) or high UK interest
+
+// JUNE 11 — OPENING DAY
+{type:"wc",date:"2026-06-11",name:"🌍 World Cup Opens — Mexico vs South Africa",ko:"Thu 11 Jun · 20:00 BST · BBC/ITV",boost:8,solo:35,impact:"MODERATE",impact_class:"moderate",games:["🇲🇽 Mexico vs South Africa 🇿🇦 · 20:00 BST · Estadio Azteca Mexico City","🇰🇷 South Korea vs Czechia 🇨🇿 · 03:00 BST (overnight)"]},
+// JUNE 12
+{type:"wc",date:"2026-06-12",name:"🌍 World Cup — USA vs Paraguay",ko:"Fri 12 Jun · 20:00 BST · BBC/ITV",boost:6,solo:28,impact:"LOW-MODERATE",impact_class:"moderate",games:["🇺🇸 USA vs Paraguay 🇵🇾 · 20:00 BST · SoFi Stadium LA","🇨🇦 Canada vs Bosnia & Herzegovina 🇧🇦 · 20:00 BST · BMO Field Toronto"]},
+// JUNE 14
+{type:"wc",date:"2026-06-14",name:"🌍 World Cup — Scotland vs Haiti",ko:"Sat 14 Jun · 02:00 BST (overnight)",boost:2,solo:10,impact:"LOW",impact_class:"moderate"},
+// JUNE 15
+{type:"wc",date:"2026-06-15",name:"🌍 World Cup — Belgium vs Egypt",ko:"Sun 15 Jun · Multiple kick-offs BST · BBC/ITV",boost:8,solo:32,impact:"MODERATE",impact_class:"moderate",games:["🇧🇪 Belgium vs Egypt 🇪🇬 · 20:00 BST · Lumen Field Seattle","🇸🇦 Saudi Arabia vs Uruguay 🇺🇾 · 23:00 BST · Hard Rock Stadium Miami"]},
+// JUNE 16
+{type:"wc",date:"2026-06-16",name:"🌍 World Cup — France vs Senegal",ko:"Mon 16 Jun · 20:00 BST · BBC/ITV",boost:10,solo:36,impact:"MODERATE",impact_class:"moderate",games:["🇫🇷 France vs Senegal 🇸🇳 · 20:00 BST · MetLife Stadium New York","🇮🇶 Iraq vs Norway 🇳🇴 · 23:00 BST · Gillette Stadium Boston","🇦🇷 Argentina vs Algeria 🇩🇿 · 01:00 BST (overnight)"]},
+// JUNE 17 — ENGLAND OPENER (biggest day)
+{type:"wc",date:"2026-06-17",name:"🏴󠁧󠁢󠁥󠁮󠁧󠁿 ENGLAND vs Croatia — World Cup Group L",ko:"Wed 17 Jun · 21:00 BST · BBC/ITV · AT&T Stadium Dallas",boost:18,solo:64,impact:"MODERATE-HIGH",impact_class:"high"},
+// JUNE 18
+{type:"wc",date:"2026-06-18",name:"🌍 World Cup — Mexico vs South Korea",ko:"Thu 18 Jun · Multiple kick-offs BST · BBC/ITV",boost:8,solo:30,impact:"MODERATE",impact_class:"moderate",games:["🇲🇽 Mexico vs South Korea 🇰🇷 · 21:00 BST · Estadio Akron Guadalajara","🇨🇿 Czechia vs South Africa 🇿🇦 · 17:00 BST · Mercedes-Benz Stadium Atlanta","🇨🇭 Switzerland vs Qatar 🇶🇦 · 23:00 BST (late)"]},
+// JUNE 19
+{type:"wc",date:"2026-06-19",name:"🌍 World Cup — Scotland vs Morocco",ko:"Fri 19 Jun · 23:00 BST · BBC/ITV",boost:10,solo:35,impact:"MODERATE",impact_class:"moderate",games:["🏴󠁧󠁢󠁳󠁣󠁴󠁿 Scotland vs Morocco 🇲🇦 · 23:00 BST · Gillette Stadium Boston","🇺🇸 USA vs Australia 🇦🇺 · 20:00 BST · SoFi Stadium LA","🇧🇷 Brazil vs Cameroon 🇨🇲 · 02:00 BST (overnight)"]},
+// JUNE 20
+{type:"wc",date:"2026-06-20",name:"🌍 World Cup — Argentina vs Austria",ko:"Sat 20 Jun · 18:00 BST · BBC/ITV",boost:10,solo:36,impact:"MODERATE",impact_class:"moderate",games:["🇦🇷 Argentina vs Austria 🇦🇹 · 18:00 BST · AT&T Stadium Dallas","🇫🇷 France vs Iraq 🇮🇶 · 22:00 BST · Lincoln Financial Philadelphia"]},
+// JUNE 21
+{type:"wc",date:"2026-06-21",name:"🌍 World Cup — Spain vs Saudi Arabia + Belgium vs Iran",ko:"Sun 21 Jun · Multiple kick-offs BST · BBC/ITV",boost:8,solo:30,impact:"MODERATE",impact_class:"moderate",games:["🇪🇸 Spain vs Saudi Arabia 🇸🇦 · 17:00 BST · Mercedes-Benz Stadium Atlanta","🇧🇪 Belgium vs Iran 🇮🇷 · 20:00 BST · SoFi Stadium LA","🇺🇾 Uruguay vs Spain 🇪🇸 · 23:00 BST"]},
+// JUNE 22
+{type:"wc",date:"2026-06-22",name:"🌍 World Cup — France vs Iraq + Argentina vs Austria",ko:"Mon 22 Jun · Various BST · BBC/ITV",boost:10,solo:34,impact:"MODERATE",impact_class:"moderate",games:["🇳🇴 Norway vs Senegal 🇸🇳 · 01:00 BST (overnight)","🇦🇷 Argentina vs Austria 🇦🇹 · 18:00 BST · AT&T Stadium Dallas","🇫🇷 France vs Iraq 🇮🇶 · 22:00 BST · Lincoln Financial Philadelphia"]},
+// JUNE 23 — ENGLAND vs GHANA
+{type:"wc",date:"2026-06-23",name:"🏴󠁧󠁢󠁥󠁮󠁧󠁿 ENGLAND vs Ghana — World Cup Group L",ko:"Tue 23 Jun · 21:00 BST · BBC/ITV · Gillette Stadium Boston",boost:16,solo:60,impact:"MODERATE-HIGH",impact_class:"high"},
+// JUNE 24
+{type:"wc",date:"2026-06-24",name:"🌍 World Cup — Scotland vs Brazil + Portugal vs Uzbekistan",ko:"Wed 24 Jun · Various BST · BBC/ITV",boost:12,solo:38,impact:"MODERATE",impact_class:"moderate",games:["🇵🇹 Portugal vs Uzbekistan 🇺🇿 · 18:00 BST · NRG Stadium Houston","🏴󠁧󠁢󠁳󠁣󠁴󠁿 Scotland vs Brazil 🇧🇷 · 23:00 BST · Hard Rock Stadium Miami"]},
+// JUNE 25
+{type:"wc",date:"2026-06-25",name:"🌍 World Cup — Multiple group deciders",ko:"Thu 25 Jun · Multiple BST · BBC/ITV",boost:8,solo:28,impact:"LOW-MODERATE",impact_class:"moderate",games:["🇲🇽 Mexico vs Czechia 🇨🇿 · 01:00 BST (overnight)","🇿🇦 South Africa vs South Korea 🇰🇷 · 01:00 BST","🇹🇳 Tunisia vs Netherlands 🇳🇱 · 00:00 BST"]},
+// JUNE 26
+{type:"wc",date:"2026-06-26",name:"🌍 World Cup — Multiple group deciders",ko:"Fri 26 Jun · Multiple BST · BBC/ITV",boost:8,solo:28,impact:"LOW-MODERATE",impact_class:"moderate",games:["🇫🇷 France vs Norway 🇳🇴 · 20:00 BST · Gillette Stadium Boston","🇸🇳 Senegal vs Iraq 🇮🇶 · 20:00 BST · BMO Field Toronto","🇳🇱 Netherlands vs Japan 🇯🇵 · 23:00 BST"]},
+// JUNE 27 — ENGLAND vs PANAMA (final group game)
+{type:"wc",date:"2026-06-27",name:"🏴󠁧󠁢󠁥󠁮󠁧󠁿 Panama vs ENGLAND — World Cup Group L",ko:"Sat 27 Jun · 22:00 BST · BBC/ITV · MetLife Stadium New York",boost:18,solo:62,impact:"MODERATE-HIGH",impact_class:"high"},
+// JUNE 28-30 — ROUND OF 32 BEGINS
+{type:"wc",date:"2026-06-28",name:"🌍 World Cup — Round of 32 begins",ko:"Sun 28 Jun · Various from 17:00 BST · BBC/ITV",boost:8,solo:26,impact:"LOW-MODERATE",impact_class:"moderate"},
+{type:"wc",date:"2026-06-29",name:"🌍 World Cup — Round of 32",ko:"Mon 29 Jun · Various from 17:00 BST · BBC/ITV",boost:8,solo:26,impact:"LOW-MODERATE",impact_class:"moderate"},
+{type:"wc",date:"2026-06-30",name:"🌍 World Cup — Round of 32",ko:"Tue 30 Jun · Various from 17:00 BST · BBC/ITV",boost:8,solo:26,impact:"LOW-MODERATE",impact_class:"moderate"},
+// JULY 1 — potential England Round of 32
+{type:"wc",date:"2026-07-01",name:"🏴󠁧󠁢󠁥󠁮󠁧󠁿 England Round of 32 (if group winners)",ko:"Wed 1 Jul · 17:00 BST · BBC/ITV · Mercedes-Benz Atlanta",boost:14,solo:52,impact:"MODERATE",impact_class:"moderate"},
+{type:"wc",date:"2026-07-02",name:"🌍 World Cup — Round of 32",ko:"Thu 2 Jul · Various · BBC/ITV",boost:8,solo:25,impact:"LOW-MODERATE",impact_class:"moderate"},
+{type:"wc",date:"2026-07-03",name:"🌍 World Cup — Round of 32",ko:"Fri 3 Jul · Various · BBC/ITV",boost:8,solo:25,impact:"LOW-MODERATE",impact_class:"moderate"},
+{type:"wc",date:"2026-07-04",name:"🌍 World Cup — Round of 32",ko:"Sat 4 Jul · Various · BBC/ITV",boost:8,solo:25,impact:"LOW-MODERATE",impact_class:"moderate"},
+{type:"wc",date:"2026-07-05",name:"🌍 World Cup — Round of 32",ko:"Sun 5 Jul · Various · BBC/ITV",boost:8,solo:25,impact:"LOW-MODERATE",impact_class:"moderate"},
+// JULY 6-8 — ROUND OF 16
+{type:"wc",date:"2026-07-06",name:"🌍 World Cup — Round of 16",ko:"Mon 6 Jul · Various · BBC/ITV",boost:10,solo:30,impact:"MODERATE",impact_class:"moderate"},
+{type:"wc",date:"2026-07-07",name:"🌍 World Cup — Round of 16",ko:"Tue 7 Jul · Various · BBC/ITV",boost:10,solo:30,impact:"MODERATE",impact_class:"moderate"},
+{type:"wc",date:"2026-07-08",name:"🌍 World Cup — Round of 16",ko:"Wed 8 Jul · Various · BBC/ITV",boost:10,solo:30,impact:"MODERATE",impact_class:"moderate"},
+{type:"wc",date:"2026-07-09",name:"🌍 World Cup — Round of 16",ko:"Thu 9 Jul · Various · BBC/ITV",boost:10,solo:30,impact:"MODERATE",impact_class:"moderate"},
+// QUARTER FINALS — July 10-13
+{type:"wc",date:"2026-07-10",name:"🌍 World Cup — Quarter-Final",ko:"Fri 10 Jul · 21:00 BST · BBC/ITV",boost:14,solo:42,impact:"MODERATE",impact_class:"moderate"},
+{type:"wc",date:"2026-07-11",name:"🌍 World Cup — Quarter-Final",ko:"Sat 11 Jul · 20:00 BST · BBC/ITV",boost:14,solo:42,impact:"MODERATE",impact_class:"moderate"},
+{type:"wc",date:"2026-07-12",name:"🌍 World Cup — Quarter-Final",ko:"Sun 12 Jul · 20:00 BST · BBC/ITV",boost:14,solo:42,impact:"MODERATE",impact_class:"moderate"},
+{type:"wc",date:"2026-07-13",name:"🌍 World Cup — Quarter-Final",ko:"Mon 13 Jul · 21:00 BST · BBC/ITV",boost:14,solo:42,impact:"MODERATE",impact_class:"moderate"},
+// SEMI FINALS — July 14-15
+{type:"wc",date:"2026-07-14",name:"🌍 World Cup — Semi-Final",ko:"Tue 14 Jul · 20:00 BST · BBC/ITV",boost:18,solo:55,impact:"MODERATE-HIGH",impact_class:"high"},
+{type:"wc",date:"2026-07-15",name:"🌍 World Cup — Semi-Final",ko:"Wed 15 Jul · 20:00 BST · BBC/ITV",boost:18,solo:55,impact:"MODERATE-HIGH",impact_class:"high"},
+// 3RD PLACE
+{type:"wc",date:"2026-07-18",name:"🌍 World Cup — Third Place Play-off",ko:"Sat 18 Jul · 22:00 BST · BBC/ITV · Miami",boost:8,solo:28,impact:"LOW-MODERATE",impact_class:"moderate"},
+// WORLD CUP FINAL
+{type:"wc",date:"2026-07-19",name:"🌍 World Cup Final",ko:"Sun 19 Jul · 20:00 BST · BBC/ITV · MetLife Stadium New York",boost:22,solo:68,impact:"MODERATE-HIGH",impact_class:"high"},
+
+// ── EUROPA LEAGUE (missing from original) ──
+// Semi-finals: 30 Apr (1st leg) + 7 May (2nd leg). Final: 20 May Istanbul
+// Aston Villa in the final — big UK interest
+{type:"el",date:"2026-05-07",name:"🟠 Europa League Semi-Final 2nd Leg — Aston Villa vs Freiburg",ko:"Thu 7 May · 20:00 BST · TNT Sports",boost:14,solo:48,impact:"MODERATE-HIGH",impact_class:"high",games:["🟠 Aston Villa vs Freiburg · 20:00 BST · Villa Park","🟠 Tottenham vs Bayer Leverkusen · 20:00 BST · TNT Sports"]},
+{type:"el",date:"2026-05-20",name:"🟠 Europa League FINAL — Aston Villa vs Freiburg",ko:"Wed 20 May · 20:00 BST · TNT Sports · Istanbul",boost:18,solo:55,impact:"MODERATE-HIGH",impact_class:"high",games:["🟠 Aston Villa vs Freiburg · FINAL · 20:00 BST · Beşiktaş Park Istanbul","🏆 Villa chasing first European trophy since 1982 European Cup"]},
+
+// ── CONFERENCE LEAGUE FINAL ──
+{type:"el",date:"2026-05-27",name:"🔵 Conference League Final",ko:"Wed 27 May · 20:00 BST · TNT Sports · Leipzig",boost:8,solo:28,impact:"LOW-MODERATE",impact_class:"moderate",games:["🔵 Conference League Final · 20:00 BST · Red Bull Arena Leipzig"]},
+
+// ── BOXING: PARKER VS WARDLEY at The O2 ──
+{type:"boxing",date:"2026-05-02",name:"🥊 Parker vs Wardley — Heavyweight",ko:"Sat 2 May · Undercard 18:00 BST · Main event ~22:00 BST · TNT Sports",boost:10,solo:42,impact:"MODERATE",impact_class:"moderate"},
+];
+
+
+function wmoDesc(code) {
+  if(code===0) return['☀️','Clear skies'];
+  if(code===1) return['🌤️','Mainly clear'];
+  if(code===2) return['⛅','Partly cloudy'];
+  if(code===3) return['☁️','Overcast'];
+  if(code<=45) return['🌫️','Foggy'];
+  if(code<=48) return['🌫️','Freezing fog'];
+  if(code<=55) return['🌦️','Drizzle'];
+  if(code<=57) return['🌧️','Freezing drizzle'];
+  if(code<=65) return['🌧️','Rain'];
+  if(code<=67) return['🌨️','Freezing rain'];
+  if(code<=75) return['❄️','Snowfall'];
+  if(code<=77) return['🌨️','Snow grains'];
+  if(code<=82) return['🌦️','Rain showers'];
+  if(code<=86) return['🌨️','Snow showers'];
+  if(code<=99) return['⛈️','Thunderstorm'];
+  return['🌡️','Unknown'];
+}
+
+
+// ================================================================
+// WEATHER — Open-Meteo API, auto-loads on Netlify/Safari
+// Fetches once on load, caches for session, shows per selected date
+// ================================================================
+let WX_API = null;
+
+// Impact lookup from WMO weather code
+function wxImpactFromCode(code){
+  if(code===0) return 8;
+  if(code<=2)  return 4;
+  if(code===3) return 0;
+  if(code<=49) return -3;
+  if(code<=59) return -8;
+  if(code<=69) return -15;
+  if(code<=79) return -5;
+  if(code<=82) return -8;
+  if(code<=99) return -22;
+  return 0;
+}
+
+function wmoLabel(code){
+  if(code===0) return['☀️','Clear skies'];
+  if(code<=2)  return['🌤️','Mostly sunny'];
+  if(code===3) return['☁️','Overcast'];
+  if(code<=45) return['🌫️','Fog'];
+  if(code<=55) return['🌦️','Drizzle'];
+  if(code<=65) return['🌧️','Rain'];
+  if(code<=75) return['❄️','Snow'];
+  if(code<=82) return['🌧️','Rain showers'];
+  if(code<=99) return['⛈️','Thunderstorm'];
+  return['🌡️','Unknown'];
+}
+
+function getWxImpact(ds){
+  if(!WX_API) return 0;
+  const i = WX_API.time.indexOf(ds);
+  return i !== -1 ? wxImpactFromCode(WX_API.weathercode[i]) : 0;
+}
+
+async function fetchLiveWeather(){
+  try{
+    const r = await fetch('https://api.open-meteo.com/v1/forecast?latitude=51.5074&longitude=-0.1278&daily=temperature_2m_max,temperature_2m_min,weathercode,precipitation_probability_max&timezone=Europe/London&forecast_days=14');
+    if(!r.ok) throw new Error(r.status);
+    const d = await r.json();
+    if(d.daily){ WX_API = d.daily; renderWxCard(); renderMain(); }
+  }catch(e){ /* no weather available — card stays hidden */ }
+}
+
+function renderWxCard(){
+  const el = document.getElementById('wx-card');
+  if(!el || !SEL || !WX_API) return;
+  const i = WX_API.time.indexOf(SEL);
+  if(i === -1){ el.style.display='none'; return; }
+  const [icon, label] = wmoLabel(WX_API.weathercode[i]);
+  const hi  = Math.round(WX_API.temperature_2m_max[i]);
+  const lo  = Math.round(WX_API.temperature_2m_min[i]);
+  const rain = WX_API.precipitation_probability_max[i];
+  const impact = wxImpactFromCode(WX_API.weathercode[i]);
+  el.style.display = 'flex';
+  el.innerHTML = `
+    <div style="font-size:2rem;flex-shrink:0">${icon}</div>
+    <div style="flex:1">
+      <div style="font-size:.95rem;font-weight:500;color:var(--text)">${label} &nbsp;·&nbsp; ${hi}°/${lo}°C</div>
+      <div style="font-size:.75rem;color:var(--muted);margin-top:2px">💧 ${rain}% rain &nbsp;·&nbsp; London SE10</div>
+    </div>
+    <div style="text-align:right;flex-shrink:0">
+      <div style="font-size:.8rem;font-weight:600;color:${impact>0?'var(--green)':impact<-10?'var(--red)':impact<0?'var(--amber)':'var(--muted)'}">
+        ${impact>0?'▲ +'+impact+' pts':impact<0?'▼ '+impact+' pts':'→ Neutral'}
+      </div>
+      <div style="font-size:.68rem;color:var(--muted);margin-top:1px">footfall impact</div>
+    </div>`;
+}
+
+// ================================================================
+// STORAGE
+// ================================================================
+function gd(k,d){try{return JSON.parse(localStorage.getItem('dial-'+k))||d;}catch(e){return d;}}
+function sd(k,v){localStorage.setItem('dial-'+k,JSON.stringify(v));}
+function getCustom(){return gd('custom',[]);}
+function saveCustom(a){sd('custom',a);}
+function getRev(){return gd('revenue',[]);}
+function saveRev(a){sd('revenue',a);}
+
+// ================================================================
+// HELPERS
+// ================================================================
+function fmt(d){return d.toISOString().slice(0,10);}
+function fgbp(n){return n?'£'+Number(n).toLocaleString('en-GB',{minimumFractionDigits:0}):'—';}
+const DY=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const DYF=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const MOF=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const WKDAYS=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+function bc(b){if(b>=85)return'var(--red)';if(b>=75)return'#f07832';if(b>=60)return'var(--amber)';return'var(--green)';}
+function bl(b){if(b>=85)return'Manic';if(b>=75)return'Very Busy';if(b>=60)return'Busy';return'Moderate';}
+function tg(level){return{low:'tag-g',moderate:'tag-b',high:'tag-a','very high':'tag-r'}[level]||'tag-a';}
+function pillClass(type){return{pl:'pl',boxing:'boxing',ucl:'sport',wc:'sport',other:'sport'}[type]||'sport';}
+function bannerClass(type){return{pl:'pl-banner',boxing:'boxing-banner',ucl:'football',wc:'football',other:'football'}[type]||'football';}
+function badgeClass(type){return{pl:'pl',boxing:'boxing',ucl:'football',wc:'football',other:'football'}[type]||'football';}
+function sportIcon(type){return{pl:'⚽',boxing:'🥊',ucl:'🏆',wc:'🌍',other:'🏅'}[type]||'🏅';}
+
+function getWeek(){
+  const now=new Date(),base=new Date(now);
+  base.setDate(now.getDate()-((now.getDay()+6)%7)+WO*7);
+  return Array.from({length:7},(_,i)=>{const d=new Date(base);d.setDate(base.getDate()+i);return fmt(d);});
+}
+function showsOn(ds){return SHOWS.filter(e=>e.date===ds);}
+function indigoOn(ds){return INDIGO.filter(e=>e.date===ds);}
+function sportsOn(ds){return SPORTS.filter(e=>e.date===ds);}
+function customOn(ds){return getCustom().filter(e=>e.date===ds);}
+function dayBusy(ds){
+  const m=SHOWS.find(e=>e.date===ds),sp=SPORTS.filter(e=>e.date===ds);
+  let b=m?m.busy:sp.reduce((a,s)=>Math.max(a,s.solo||0),0);
+  if(m)sp.forEach(s=>b=Math.min(100,b+(s.boost||0)));
+  return b;
+}
+
+// ================================================================
+// STATE
+// ================================================================
+let WO=0,SEL=null,VIEW='event';
+
+// ================================================================
+// SIDEBAR
+// ================================================================
+function renderSidebar(){
+  const wk=getWeek(),todayStr=fmt(new Date());
+  const s0=new Date(wk[0]+'T12:00:00'),s6=new Date(wk[6]+'T12:00:00');
+  document.getElementById('wk-label').textContent=
+    s0.getMonth()===s6.getMonth()?`${s0.getDate()}–${s6.getDate()} ${MO[s0.getMonth()]}`:`${s0.getDate()} ${MO[s0.getMonth()]}–${s6.getDate()} ${MO[s6.getMonth()]}`;
+  const con=document.getElementById('day-tabs');con.innerHTML='';
+  wk.forEach((ds,i)=>{
+    const sh=showsOn(ds),sp=sportsOn(ds),cu=customOn(ds),id=indigoOn(ds);
+    const d=new Date(ds+'T12:00:00'),b=dayBusy(ds);
+    const tab=document.createElement('div');
+    tab.className='day-tab'+(ds===SEL?' active':'');
+    tab.onclick=()=>{SEL=ds;renderSidebar();renderMain();};
+    let pills=sh.map(s=>`<span class="ev-pill arena">${s.name}</span>`).join('');
+    pills+=id.map(e=>`<span class="ev-pill indigo">${e.name}</span>`).join('');
+    pills+=sp.map(e=>`<span class="ev-pill ${pillClass(e.type)}">${sportIcon(e.type)} ${e.name}</span>`).join('');
+    pills+=cu.map(e=>`<span class="ev-pill custom">★ ${e.name}</span>`).join('');
+    tab.innerHTML=`<div class="date-num" style="${ds===todayStr?'color:var(--accent2)':''}">${d.getDate()}</div><div class="day-info"><div class="day-name">${WKDAYS[i]}${ds===todayStr?' · Today':''}</div>${pills||'<span style="font-size:.72rem;color:var(--muted);font-style:italic">No events</span>'}${b?`<div class="busy-bar"><div class="busy-fill" style="width:${b}%;background:${bc(b)}"></div></div>`:''}</div>`;
+    con.appendChild(tab);
+  });
+}
+
+// ================================================================
+// MAIN
+// ================================================================
+function renderMain(){
+  const M=document.getElementById('main');M.innerHTML='';
+  if(!SEL){M.innerHTML='<div class="empty-state"><div class="esi">🎵</div><p>Select a date to view event intelligence</p></div>';return;}
+  const vt=document.createElement('div');vt.className='view-tabs';
+  vt.innerHTML=`<div class="view-tab ${VIEW==='event'?'active':''}" onclick="switchView('event')">Event Intelligence</div><div class="view-tab ${VIEW==='revenue'?'active':''}" onclick="switchView('revenue')">Revenue Log</div>`;
+  M.appendChild(vt);
+  if(VIEW==='event')renderEventView(M);else renderRevView(M);
+}
+function switchView(v){VIEW=v;renderMain();}
+
+// ================================================================
+// EVENT VIEW
+// ================================================================
+function renderEventView(M){
+  const sh=showsOn(SEL),sp=sportsOn(SEL),cu=customOn(SEL),id=indigoOn(SEL);
+  // WEATHER CARD — auto-loads from API on Netlify/Safari
+  const wxDiv=document.createElement('div');
+  wxDiv.id='wx-card';
+  wxDiv.className='card';
+  wxDiv.style.cssText='margin-bottom:13px;display:none;align-items:center;gap:12px';
+  M.appendChild(wxDiv);
+  renderWxCard();
+  const d=new Date(SEL+'T12:00:00'),mainS=sh[0];
+
+  // GROUP SPORTS by type for separate banners
+  const ucl=sp.filter(e=>e.type==='ucl');
+  const wc=sp.filter(e=>e.type==='wc');
+  const pl=sp.filter(e=>e.type==='pl');
+  const boxing=sp.filter(e=>e.type==='boxing');
+
+  function sportBanner(events,cssClass,icon,label){
+    if(!events.length)return;
+    const bn=document.createElement('div');bn.className=`sport-banner ${cssClass}`;
+    bn.innerHTML=`<h2>${icon} ${label}</h2>`+
+      events.map(s=>`<div class="sport-ev">
+        <div class="sdtl" style="width:100%">
+          <h3 style="font-size:.95rem;margin-bottom:4px">${s.name}</h3>
+          <div class="sport-badge ${badgeClass(s.type)}" style="display:inline-block;margin-bottom:6px">${s.ko}</div>
+          ${s.games?`<div style="margin-top:6px;border-top:1px solid rgba(255,255,255,.06);padding-top:6px">${s.games.map(g=>`<div style="font-size:.78rem;padding:2px 0;color:var(--text)">${g}</div>`).join('')}</div>`:''}
+          <p class="impact-line ${s.impact_class}" style="margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,.06)">⚡ Manager impact: ${s.impact}</p>
+        </div>
+      </div>`).join('');
+    M.appendChild(bn);
+  }
+
+  sportBanner(ucl,'football','🏆','Champions League — Footfall Impact');
+  sportBanner(wc,'football','🌍','FIFA World Cup 2026 — Footfall Impact');
+  sportBanner(pl,'pl-banner','⚽','Premier League — Footfall Impact');
+  sportBanner(boxing,'boxing-banner','🥊','Boxing — Footfall Impact');
+
+  // CUSTOM EVENTS
+  if(cu.length){
+    const cb=document.createElement('div');cb.className='custom-banner';
+    cb.innerHTML=`<h2>★ Your Bookings & Events Today</h2>`+
+      cu.map(c=>`<div class="cb-ev"><span class="cb-badge ${c.type||'other'}">${(c.type||'other').replace(/-/g,' ').toUpperCase()}</span><div class="cb-dtl"><div class="cb-name">${c.name}</div><div class="cb-meta">${c.start||''} ${c.covers?'· '+c.covers+' guests':''} ${c.spend?'· Est. '+fgbp(c.spend):''}</div>${c.notes?`<div style="font-size:.78rem;color:var(--text);margin-top:2px">${c.notes}</div>`:''}</div><button onclick="delCustom('${c.id}')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:.88rem;padding:0 3px">✕</button></div>`).join('');
+    M.appendChild(cb);
+  }
+
+  // MAIN SHOW
+  if(mainS){
+    const boost=sp.reduce((a,s)=>a+(s.boost||0),0);
+    const wxImpact=getWxImpact(SEL);
+    const totalBusy=Math.min(100,Math.max(0,mainS.busy+boost+wxImpact));
+    const c=document.createElement('div');
+    c.innerHTML=`
+<div class="event-header">
+  <div class="etb">
+    <h1>${mainS.name}</h1>
+    <div><span class="vbadge arena">🏟 O2 Arena</span></div>
+    <div class="time-info">Doors ${mainS.doors} · Show ${mainS.start} · ${DYF[d.getDay()]} ${d.getDate()} ${MOF[d.getMonth()]}</div>
+    ${boost?`<div style="font-size:.75rem;color:var(--amber);margin-top:3px">⚽ +${boost} from live sport</div>`:''}
+    ${wxImpact!==0?`<div style="font-size:.75rem;color:${wxImpact>0?'var(--green)':'var(--red)'};margin-top:2px">${wxImpact>0?'▲ +'+wxImpact+' weather boost':'▼ '+wxImpact+' weather impact'}</div>`:''}
+  </div>
+  <div class="busy-meter">
+    <div class="bm-label">Busyness</div>
+    <div class="bm-num" style="color:${bc(totalBusy)}">${totalBusy}</div>
+    <div class="bm-sub">${bl(totalBusy)}</div>
+  </div>
+</div>
+<div class="grid3">
+  <div class="card"><div class="card-lbl">Genre</div><div class="card-val">${mainS.genre}</div></div>
+  <div class="card"><div class="card-lbl">Pre-show drinks</div><div class="card-val"><span class="tag ${tg(mainS.pre)}">${mainS.pre.toUpperCase()}</span></div></div>
+  <div class="card"><div class="card-lbl">Post-show drinks</div><div class="card-val"><span class="tag ${tg(mainS.post)}">${mainS.post.toUpperCase()}</span></div></div>
+  <div class="card"><div class="card-lbl">Instagram</div><div class="card-val" style="font-size:.88rem">${mainS.ig} followers <span style="color:var(--muted);font-size:.78rem">${mainS.igHandle||''}</span></div></div>
+  <div class="card"><div class="card-lbl">Tickets</div><div class="card-val" style="font-size:.85rem;color:${mainS.tickets&&mainS.tickets.includes('SOLD OUT')?'var(--red)':mainS.tickets&&mainS.tickets.includes('limited')?'var(--amber)':'var(--green)'}">${mainS.tickets||'—'}</div></div>
+  ${mainS.night?`<div class="card"><div class="card-lbl">Run</div><div class="card-val" style="font-size:.88rem">${mainS.night}</div></div>`:`<div class="card"><div class="card-lbl">Capacity</div><div class="card-val">${mainS.cap?.toLocaleString()}</div></div>`}
+</div>
+${(()=>{
+  // ── CROWD VIBE PREDICTION ──────────────────────────────────
+  // drinkScore 0–100: higher = more drinking, lower = more eating/seated
+  let drinkScore = 50;
+
+  // Base from pre/post drinks level
+  const preMap={'very high':30,'high':20,'moderate':5,'low':-10};
+  const postMap={'very high':20,'high':12,'moderate':3,'low':-8};
+  drinkScore += (preMap[mainS.pre]||0) + (postMap[mainS.post]||0);
+
+  // Genre adjustments
+  const g = mainS.genre.toLowerCase();
+  if(g.includes('r&b')||g.includes('hip-hop')||g.includes('afro')) drinkScore += 15;
+  if(g.includes('electronic')||g.includes('house')||g.includes('dance')) drinkScore += 12;
+  if(g.includes('rock')||g.includes('indie')) drinkScore += 8;
+  if(g.includes('pop')&&!g.includes('r&b')) drinkScore += 3;
+  if(g.includes('classical')||g.includes('folk')||g.includes('soul')) drinkScore -= 10;
+  if(g.includes('latin')||g.includes('bachata')) drinkScore += 10;
+
+  // Day of week
+  const dow = new Date(SEL+'T12:00:00').getDay();
+  if(dow===6) drinkScore += 10; // Saturday
+  if(dow===5) drinkScore += 7;  // Friday
+  if(dow===0) drinkScore -= 5;  // Sunday
+  if(dow===1||dow===2) drinkScore -= 8; // Mon/Tue
+
+  // Weather impact
+  if(wxImpact >= 4) drinkScore += 5;   // nice weather = people out drinking
+  if(wxImpact <= -10) drinkScore -= 8; // rain = people want to sit & eat
+
+  drinkScore = Math.min(95, Math.max(5, drinkScore));
+  const eatScore = 100 - drinkScore;
+
+  // Labels
+  let vibeLabel, vibeDesc, vibeIcon, vibeColor;
+  if(drinkScore >= 80) {
+    vibeLabel='Heavy drinking crowd'; vibeIcon='🍺';vibeColor='var(--amber)';
+    vibeDesc='Standing at the bar, rounds, shots. Food is secondary. Staff bar-heavy.';
+  } else if(drinkScore >= 65) {
+    vibeLabel='Drinking-led, some food'; vibeIcon='🍺';vibeColor='var(--amber)';
+    vibeDesc='Mostly drinking but a good portion will eat. Keep both bar and kitchen ready.';
+  } else if(drinkScore >= 50) {
+    vibeLabel='Mixed — drinks and food'; vibeIcon='🍽️';vibeColor='var(--blue)';
+    vibeDesc='Even split. Good food and cocktail trade. Neither dominates.';
+  } else if(drinkScore >= 35) {
+    vibeLabel='Food-led, casual drinks'; vibeIcon='🍽️';vibeColor='var(--green)';
+    vibeDesc='Seated dining with drinks alongside. Food revenue will lead tonight.';
+  } else {
+    vibeLabel='Dining & seated crowd'; vibeIcon='🍽️';vibeColor='var(--green)';
+    vibeDesc='Primarily here to eat. Drinks are secondary. Kitchen is the priority.';
+  }
+
+  return `<div class="section" style="margin-bottom:13px">
+    <h2>Tonight's Crowd Vibe</h2>
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px">
+      <div style="font-size:2.2rem">${vibeIcon}</div>
+      <div>
+        <div style="font-size:1rem;font-weight:600;color:${vibeColor}">${vibeLabel}</div>
+        <div style="font-size:.82rem;color:var(--muted);margin-top:2px">${vibeDesc}</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:0;height:28px;border-radius:6px;overflow:hidden;border:1px solid var(--border)">
+      <div style="width:${drinkScore}%;background:linear-gradient(90deg,var(--amber),#e07832);display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:600;color:#0d0d0d;white-space:nowrap;padding:0 8px;transition:width .4s">
+        ${drinkScore>=25?'🍺 '+drinkScore+'% drinks':''}
+      </div>
+      <div style="flex:1;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:.72rem;color:var(--muted);white-space:nowrap;padding:0 8px">
+        ${eatScore>=20?'🍽 '+eatScore+'% food':''}
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-top:4px;font-size:.68rem;color:var(--muted)">
+      <span>Drinking crowd</span><span>Dining crowd</span>
+    </div>
+  </div>`;
+})()}
+<div class="section">
+  <h2>Crowd Profile</h2>
+  <div class="crowd-grid">
+    <div class="ccard"><h3>Who's coming</h3><p>${mainS.crowd}</p></div>
+    <div class="ccard"><h3>What they'll drink</h3><div class="drink-bars">${mainS.drinks.map(dk=>`<div class="drink-row"><span class="drink-lbl">${dk.n}</span><div class="drink-track"><div class="drink-fill" style="width:${dk.p}%;background:${dk.c}"></div></div><span class="drink-pct">${dk.p}%</span></div>`).join('')}</div></div>
+  </div>
+</div>
+<div class="section">
+  <h2>Key Times</h2>
+  <div class="timing-row">${mainS.timing.map(t=>`<div class="tblock"><div class="tb-time">${t.t}</div><div class="tb-lbl">${t.l}</div><div class="tb-desc">${t.d}</div></div>`).join('')}</div>
+</div>
+<div class="section">
+  <h2>Manager Notes <a onclick="saveNotes()">Save</a></h2>
+  <p style="font-size:.84rem;line-height:1.6;margin-bottom:11px">${mainS.notes}</p>
+  <textarea id="mgr-notes" rows="3" placeholder="Add team notes...">${gd('notes-'+SEL,'')}</textarea>
+  <div class="factions"><span class="saved" id="n-saved">✓ Saved</span></div>
+</div>`;
+    M.appendChild(c);
+  } else if(sp.length===0&&cu.length===0){
+    // No show, no sport — show a quiet day card with food/drink expectations
+    const qd=document.createElement('div');
+    qd.innerHTML=`
+      <div class="event-header">
+        <div class="etb">
+          <h1 style="font-size:1.8rem;color:var(--muted)">No O2 Show</h1>
+          <div class="time-info">${DYF[d.getDay()]} ${d.getDate()} ${MOF[d.getMonth()]}</div>
+        </div>
+        <div class="busy-meter">
+          <div class="bm-label">Busyness</div>
+          <div class="bm-num" style="color:var(--green)">—</div>
+          <div class="bm-sub">No show</div>
+        </div>
+      </div>
+      <div class="section">
+        <h2>What to expect</h2>
+        <p style="font-size:.86rem;line-height:1.6;color:var(--text)">No O2 arena show tonight. Trade will be walk-in and local — food-led rather than drinking occasion. Expect a quieter, more relaxed evening with a seated dining crowd. Staff accordingly.</p>
+      </div>`;
+    M.appendChild(qd);
+  } else if(!mainS&&sp.length>0){
+    // Sport-only day — show busyness based on solo
+    const soloBusy=sp.reduce((a,s)=>Math.max(a,s.solo||0),0);
+    const c=document.createElement('div');
+    c.innerHTML=`<div class="event-header"><div class="etb"><h1>Sport Only Day</h1><div class="time-info">${DYF[d.getDay()]} ${d.getDate()} ${MOF[d.getMonth()]} · No O2 arena show</div></div><div class="busy-meter"><div class="bm-label">Busyness</div><div class="bm-num" style="color:${bc(soloBusy)}">${soloBusy}</div><div class="bm-sub">${bl(soloBusy)}</div></div></div>`;
+    M.appendChild(c);
+  }
+
+  // INDIGO
+  if(id.length){
+    const sec=document.createElement('div');sec.className='section';
+    sec.innerHTML=`<h2>Also at indigo at The O2</h2>`+id.map(e=>`<div style="display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid var(--border)"><span class="vbadge indigo">🎭 indigo</span><div><div style="font-weight:500;font-size:.86rem">${e.name}</div><div style="font-size:.74rem;color:var(--muted)">${e.t} · ~2,700 cap · Additional footfall into O2 complex</div></div></div>`).join('')+`<p style="font-size:.78rem;color:var(--muted);margin-top:7px">indigo brings extra footfall — expect some crossover into The Dial before and after.</p>`;
+    M.appendChild(sec);
+  }
+
+  // UPCOMING
+  const upc=document.createElement('div');upc.className='upcoming-section';
+  const all=[...SHOWS,...SPORTS.map(s=>({...s,_sp:true}))].filter(e=>e.date>SEL).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,10);
+  upc.innerHTML=`<h2 style="font-size:.66rem;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin-bottom:11px">Upcoming Events & Sport</h2><div class="upc-row">`+
+    all.map(ev=>{
+      const d2=new Date(ev.date+'T12:00:00');
+      const b=ev._sp?(ev.solo||40):(ev.busy||50);
+      const col=ev._sp?({pl:'#a78bfa',boxing:'var(--boxing)',ucl:'var(--sport)',wc:'var(--sport)'}[ev.type]||'var(--sport)'):bc(b);
+      return`<div class="upc-card" onclick="jumpTo('${ev.date}')"><div class="upc-date">${DY[d2.getDay()]} ${d2.getDate()} ${MO[d2.getMonth()]}</div><div class="upc-name">${ev.name}</div><div class="upc-busy" style="color:${col}">${ev._sp?ev.impact:bl(b)}</div></div>`;
+    }).join('')+'</div>';
+  M.appendChild(upc);
+}
+
+// ================================================================
+// REVENUE VIEW
+// ================================================================
+function renderRevView(M){
+  const allR=getRev(),dayR=allR.find(r=>r.date===SEL);
+  const d=new Date(SEL+'T12:00:00');
+  const c=document.createElement('div');
+
+  // Weather condition options
+  const conditions = ['☀️ Clear / Sunny','🌤️ Partly Cloudy','☁️ Overcast','🌧️ Rain','⛈️ Heavy Rain / Storm','❄️ Cold & Dry','🌫️ Foggy','🌬️ Windy'];
+  const condOpts = conditions.map(w=>`<option value="${w}" ${dayR&&dayR.weather===w?'selected':''}>${w}</option>`).join('');
+
+  c.innerHTML=`
+<div class="section">
+  <h2>Log Revenue — ${DYF[d.getDay()]} ${d.getDate()} ${MOF[d.getMonth()]}</h2>
+  <div class="fgrid2">
+    <div class="fg"><label class="fl">Total Revenue (£)</label><input id="rv2-total" type="number" step="0.01" placeholder="0.00" value="${dayR?dayR.total:''}"></div>
+    <div class="fg"><label class="fl">Food Revenue (£)</label><input id="rv2-food" type="number" step="0.01" placeholder="0.00" value="${dayR?dayR.food:''}"></div>
+    <div class="fg"><label class="fl">Drinks Revenue (£)</label><input id="rv2-drinks" type="number" step="0.01" placeholder="0.00" value="${dayR?dayR.drinks:''}"></div>
+    <div class="fg"><label class="fl">Covers / Guests</label><input id="rv2-covers" type="number" placeholder="0" value="${dayR?dayR.covers:''}"></div>
+  </div>
+  <div class="fgrid2" style="margin-bottom:9px">
+    <div class="fg"><label class="fl">Weather / Conditions</label><select id="rv2-weather"><option value="">— Select —</option>${condOpts}</select></div>
+    <div class="fg"><label class="fl">Weather Impact (1–10)</label><input id="rv2-weather-score" type="number" min="1" max="10" placeholder="e.g. 4 = rain hurt trade" value="${dayR&&dayR.weatherScore?dayR.weatherScore:''}"></div>
+  </div>
+  <div class="fg" style="margin-bottom:9px"><label class="fl">Notes</label><textarea id="rv2-notes" rows="2" placeholder="Night summary — what happened, what worked, any issues...">${dayR?dayR.notes:''}</textarea></div>
+  <div class="factions"><button class="btn-p" onclick="saveRevInline()">Save</button><span class="saved" id="rv2-saved">✓ Saved</span></div>
+</div>`;
+
+  // Weather impact score legend
+  c.innerHTML += `<div style="font-size:.72rem;color:var(--muted);padding:0 2px 12px;line-height:1.6">
+    <strong style="color:var(--text)">Weather impact guide:</strong>
+    1–3 = Badly hurt trade (heavy rain, storm) · 4–5 = Some impact (drizzle, cold) · 6–7 = Neutral · 8–10 = Helped trade (warm, sunny evening)
+  </div>`;
+
+  // History
+  const hist=[...allR].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,40);
+  if(hist.length){
+    const rows=hist.map(r=>{
+      const rd=new Date(r.date+'T12:00:00');
+      const rs=SHOWS.find(s=>s.date===r.date);
+      const rsp=SPORTS.find(s=>s.date===r.date);
+      const fp=r.total>0?Math.round(r.food/r.total*100):0;
+      const dp=r.total>0?Math.round(r.drinks/r.total*100):0;
+      const weatherBadge = r.weather ? `<span style="font-size:.7rem;color:var(--muted)">${r.weather}${r.weatherScore?' · Impact: '+r.weatherScore+'/10':''}</span>` : '';
+      return`<div class="rh-row" style="flex-wrap:wrap;gap:4px">
+        <span class="rh-date">${DY[rd.getDay()]} ${rd.getDate()} ${MO[rd.getMonth()]}</span>
+        <span class="rh-ev">${rs?rs.name:rsp?rsp.name:'—'}</span>
+        <div style="text-align:right;flex:1">
+          <div class="rh-total">${fgbp(r.total)}</div>
+          <div class="rh-break">🍽 ${fgbp(r.food)} (${fp}%) · 🍺 ${fgbp(r.drinks)} (${dp}%)</div>
+          ${weatherBadge}
+        </div>
+      </div>`;
+    }).join('');
+    c.innerHTML+=`<div class="section"><h2>Revenue History (last ${hist.length} nights)</h2><div>${rows}</div></div>`;
+  }
+  M.appendChild(c);
+}
+
+function saveRevInline(){
+  const a=getRev().filter(r=>r.date!==SEL);
+  a.push({
+    date:SEL,
+    total:parseFloat(document.getElementById('rv2-total').value)||0,
+    food:parseFloat(document.getElementById('rv2-food').value)||0,
+    drinks:parseFloat(document.getElementById('rv2-drinks').value)||0,
+    covers:parseInt(document.getElementById('rv2-covers').value)||0,
+    weather:document.getElementById('rv2-weather').value||'',
+    weatherScore:parseInt(document.getElementById('rv2-weather-score').value)||null,
+    notes:document.getElementById('rv2-notes').value
+  });
+  saveRev(a);flash('rv2-saved');
+}
+function saveNotes(){sd('notes-'+SEL,document.getElementById('mgr-notes').value);flash('n-saved');}
+function flash(id){const el=document.getElementById(id);if(el){el.style.display='inline';setTimeout(()=>el.style.display='none',2000);}}
+
+// ================================================================
+// MODALS
+// ================================================================
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+document.addEventListener('click',e=>{if(e.target.classList.contains('modal-overlay'))e.target.classList.remove('open');});
+
+function openAddEvent(){document.getElementById('ae-date').value=SEL||fmt(new Date());openModal('m-add');}
+function saveCustomEvent(){
+  const e={id:Date.now().toString(),date:document.getElementById('ae-date').value,name:document.getElementById('ae-name').value,type:document.getElementById('ae-type').value,start:document.getElementById('ae-time').value,covers:document.getElementById('ae-covers').value,spend:document.getElementById('ae-spend').value,notes:document.getElementById('ae-notes').value};
+  if(!e.name||!e.date){alert('Name and date required.');return;}
+  const a=getCustom();a.push(e);saveCustom(a);
+  flash('ae-saved');setTimeout(()=>{closeModal('m-add');renderSidebar();renderMain();},1100);
+}
+function delCustom(id){saveCustom(getCustom().filter(e=>e.id!==id));renderSidebar();renderMain();}
+
+function openRevModal(){document.getElementById('rv-date').value=SEL||fmt(new Date());openModal('m-rev');}
+function saveRevModal(){
+  const date=document.getElementById('rv-date').value;
+  const a=getRev().filter(r=>r.date!==date);
+  a.push({
+    date,
+    total:parseFloat(document.getElementById('rv-total').value)||0,
+    food:parseFloat(document.getElementById('rv-food').value)||0,
+    drinks:parseFloat(document.getElementById('rv-drinks').value)||0,
+    covers:parseInt(document.getElementById('rv-covers').value)||0,
+    weather:document.getElementById('rv-weather').value||'',
+    weatherScore:parseInt(document.getElementById('rv-weather-score').value)||null,
+    notes:document.getElementById('rv-notes').value
+  });
+  saveRev(a);flash('rv-saved');setTimeout(()=>{closeModal('m-rev');if(VIEW==='revenue')renderMain();},1100);
+}
+
+// ================================================================
+// NAVIGATION
+// ================================================================
+function jumpTo(ds){
+  SEL=ds;
+  const t=new Date(ds+'T12:00:00'),now=new Date();
+  const tM=new Date(now);tM.setDate(now.getDate()-((now.getDay()+6)%7));
+  const dM=new Date(t);dM.setDate(t.getDate()-((t.getDay()+6)%7));
+  WO=Math.round((dM-tM)/(7*24*60*60*1000));
+  renderSidebar();renderMain();
+}
+function changeWeek(dir){WO=WO+dir;SEL=getWeek()[0];renderSidebar();renderMain();}
+
+// ================================================================
+// CLOCK + MIDNIGHT AUTO-REFRESH
+// ================================================================
+// Polling approach — checks every second if the date has changed.
+// Works even if the tab was left open across midnight reliably.
+let _lastDay = fmt(new Date());
+setInterval(()=>{
+  const now = new Date();
+  document.getElementById('clock').textContent=now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  // Countdown to midnight
+  const tmrw=new Date(now);tmrw.setDate(now.getDate()+1);tmrw.setHours(0,0,5,0);
+  const msLeft=tmrw-now;
+  const h=Math.floor(msLeft/3600000),m=Math.floor((msLeft%3600000)/60000);
+  const lbl=document.getElementById('refresh-label');
+  if(lbl) lbl.textContent=`Refreshes in ${h}h ${m}m`;
+  // Auto-refresh if day has changed (polling = works even if tab stayed open past midnight)
+  const today=fmt(now);
+  if(today!==_lastDay){
+    _lastDay=today;
+    const dot=document.getElementById('refresh-dot');
+    if(dot){dot.style.background='var(--accent)';setTimeout(()=>dot.style.background='var(--green)',2000);}
+    WO=0;SEL=today;renderSidebar();renderMain();
+  }
+},1000);
+
+// ================================================================
+// INIT
+// ================================================================
+// ── LIVE DATA FETCH from Netlify function ──────────────────────
+// Runs on load, merges fresh O2 + sports data with static fallback
+// The Netlify function hits football-data.org and The O2 calendar daily
+let LIVE_DATA_LOADED = false;
+
+async function fetchLiveData() {
+  const dot  = document.getElementById('refresh-dot');
+  const lbl  = document.getElementById('refresh-label');
+  try {
+    if(lbl) lbl.textContent = 'Fetching live data...';
+    const res  = await fetch('/.netlify/functions/data');
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    let newShows = 0, newSports = 0;
+
+    // ── Merge O2 shows ─────────────────────────────────────────
+    if(data.shows && data.shows.length > 0){
+      // Build lookup: date+normalised name
+      const existing = new Set(SHOWS.map(s => s.date + '|' + s.name.toLowerCase().trim()));
+      data.shows.forEach(s => {
+        const key = s.date + '|' + s.name.toLowerCase().trim();
+        if(!existing.has(key)){
+          existing.add(key);
+          newShows++;
+          SHOWS.push({
+            date    : s.date,
+            name    : s.name,
+            venue   : s.venue || 'arena',
+            start   : s.start || '20:45',
+            doors   : '18:30',
+            genre   : 'Live Event',
+            cap     : 20000,
+            busy    : 65,
+            ig      : null,
+            igHandle: null,
+            tickets : 'Check theo2.co.uk',
+            night   : null,
+            crowd   : 'Crowd profile coming soon — check back as the event approaches.',
+            pre     : 'moderate',
+            post    : 'moderate',
+            drinks  : [{n:'Lager',p:35,c:'#4fb87a'},{n:'Cocktails',p:28,c:'#9b72cf'},{n:'Wine',p:22,c:'#c8a96e'},{n:'Soft Drinks',p:15,c:'#5b9bd5'}],
+            timing  : [{t:'18:30–20:30',l:'Pre-show window',d:'Doors 18:30'},{t:'~20:45',l:'Show',d:'Headliner on stage'},{t:'~22:30',l:'Show ends',d:'Post-show'}],
+            notes   : 'Newly announced — full crowd profile will be added shortly.',
+          });
+        }
+      });
+    }
+
+    // ── Merge sports fixtures ──────────────────────────────────
+    if(data.sports && data.sports.length > 0){
+      const existingSp = new Set(SPORTS.map(s => s.date + '|' + s.name.toLowerCase().trim()));
+      data.sports.forEach(s => {
+        const key = s.date + '|' + s.name.toLowerCase().trim();
+        if(!existingSp.has(key)){
+          existingSp.add(key);
+          newSports++;
+          SPORTS.push(s);
+        }
+      });
+    }
+
+    LIVE_DATA_LOADED = true;
+
+    // ── Update status badge ────────────────────────────────────
+    if(dot)  dot.style.background = 'var(--green)';
+    if(lbl){
+      const updated = data.lastUpdated ? new Date(data.lastUpdated) : new Date();
+      const time    = updated.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+      const extras  = [];
+      if(newShows  > 0) extras.push(`+${newShows} show${newShows>1?'s':''}`);
+      if(newSports > 0) extras.push(`+${newSports} fixture${newSports>1?'s':''}`);
+      lbl.textContent = `Live data · ${time}${extras.length?' · '+extras.join(', '):''}`;
+    }
+
+    // Re-render with fresh data
+    renderSidebar();
+    renderMain();
+
+  } catch(e) {
+    console.log('Live data unavailable, using static fallback:', e.message);
+    if(dot) dot.style.background = 'var(--amber)';
+    if(lbl) lbl.textContent = 'Using cached data';
+  }
+}
+
+(function(){
+  const todayStr=fmt(new Date());
+  const all=[...SHOWS,...SPORTS].sort((a,b)=>a.date.localeCompare(b.date));
+  const next=all.find(e=>e.date>=todayStr);
+  if(next){
+    const d=new Date(next.date+'T12:00:00'),now=new Date();
+    const tM=new Date(now);tM.setDate(now.getDate()-((now.getDay()+6)%7));
+    const dM=new Date(d);dM.setDate(d.getDate()-((d.getDay()+6)%7));
+    WO=Math.round((dM-tM)/(7*24*60*60*1000));SEL=next.date;
+  }else SEL=todayStr;
+  renderSidebar();renderMain();
+  fetchLiveWeather();
+  fetchLiveData(); // fetch fresh O2 + sports data
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+{
+  "name": "the-dial-dashboard",
+  "version": "1.0.0",
+  "description": "The Dial O2 Manager Dashboard",
+  "engines": {
+    "node": ">=18"
+  }
+}
