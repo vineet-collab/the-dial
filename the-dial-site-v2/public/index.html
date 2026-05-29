@@ -601,7 +601,7 @@ function saveRev(a){sd('revenue',a);}
 // ================================================================
 // HELPERS
 // ================================================================
-function fmt(d){return d.toISOString().slice(0,10);}
+function fmt(d){const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');return `${y}-${m}-${day}`;}
 function fgbp(n){return n?'£'+Number(n).toLocaleString('en-GB',{minimumFractionDigits:0}):'—';}
 const DY=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
